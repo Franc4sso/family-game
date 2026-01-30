@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../**/*.tsx';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Design Tokens per Mobile (30-50cm reading distance) */
+    --font-size-category: 2rem;      /* 32px - categoria */
+    --font-size-answer: 1rem;        /* 16px - risposta (mobile compact) */
+    --font-size-rank: 1.25rem;       /* 20px - rank */
+    --font-size-score: 1.5rem;       /* 24px - punteggio (compact) */
+    --font-size-lives: 1.5rem;       /* 24px - vite */
+
+    /* Touch Target Sizes (min 44x44px per iOS/Android guidelines) */
+    --touch-target-min: 44px;
+    --touch-target-comfortable: 56px;
+
+    /* Colori */
+    --color-team-a: #3b82f6;         /* blue-500 */
+    --color-team-b: #ef4444;         /* red-500 */
+    --color-active-glow: #fbbf24;    /* amber-400 */
+
+    /* Drawer */
+    --drawer-width: 85vw;            /* 85% viewport width */
+    --drawer-max-width: 400px;
+}
+
+@layer utilities {
+    .text-mobile-category {
+        font-size: var(--font-size-category);
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .text-mobile-answer {
+        font-size: var(--font-size-answer);
+        font-weight: 600;
+        line-height: 1.25;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .text-mobile-score {
+        font-size: var(--font-size-score);
+        font-weight: 800;
+    }
+
+    .touch-target {
+        min-width: var(--touch-target-min);
+        min-height: var(--touch-target-min);
+    }
+
+    .touch-target-comfortable {
+        min-width: var(--touch-target-comfortable);
+        min-height: var(--touch-target-comfortable);
+    }
+
+    .glow-active {
+        box-shadow: 0 0 20px 5px var(--color-active-glow);
+        animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.8;
+        }
+    }
+
+    /* Grid mobile 2x4 */
+    .grid-answers-mobile {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    @media (min-width: 640px) {
+        .grid-answers-mobile {
+            gap: 0.625rem;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .grid-answers-mobile {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .grid-answers-mobile {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+}
