@@ -1,7 +1,7 @@
 export interface Category {
   id: string;
   name: string;
-  answers: { rank: number; value: string }[];
+  answers: { rank: number; value: string; aliases?: string[] }[];
 }
 
 export const CATEGORIES: Category[] = [
@@ -9,14 +9,14 @@ export const CATEGORIES: Category[] = [
     id: "most-populated-countries",
     name: "Paesi più popolati del mondo",
     answers: [
-      { rank: 1, value: "Cina" },
-      { rank: 2, value: "India" },
-      { rank: 3, value: "Stati Uniti" },
-      { rank: 4, value: "Indonesia" },
-      { rank: 5, value: "Pakistan" },
-      { rank: 6, value: "Brasile" },
-      { rank: 7, value: "Nigeria" },
-      { rank: 8, value: "Bangladesh" },
+      { rank: 1, value: "Cina", aliases: ["repubblica popolare cinese", "rpc"] },
+      { rank: 2, value: "India", aliases: ["repubblica dell'india"] },
+      { rank: 3, value: "Stati Uniti", aliases: ["usa", "america", "stati uniti d'america", "stati uniti america", "us", "u.s.a.", "united states"] },
+      { rank: 4, value: "Indonesia", aliases: ["repubblica di indonesia"] },
+      { rank: 5, value: "Pakistan", aliases: ["repubblica islamica del pakistan"] },
+      { rank: 6, value: "Brasile", aliases: ["brasil", "repubblica federativa del brasile"] },
+      { rank: 7, value: "Nigeria", aliases: ["repubblica federale della nigeria"] },
+      { rank: 8, value: "Bangladesh", aliases: ["bengladesh", "repubblica popolare del bangladesh"] },
     ],
   },
   {
@@ -65,28 +65,28 @@ export const CATEGORIES: Category[] = [
     id: "sports",
     name: "Sport più praticati",
     answers: [
-      { rank: 1, value: "Calcio" },
-      { rank: 2, value: "Pallavolo" },
-      { rank: 3, value: "Tennis" },
-      { rank: 4, value: "Basket" },
-      { rank: 5, value: "Nuoto" },
-      { rank: 6, value: "Ciclismo" },
-      { rank: 7, value: "Corsa" },
-      { rank: 8, value: "Palestra" },
+      { rank: 1, value: "Calcio", aliases: ["football", "soccer"] },
+      { rank: 2, value: "Pallavolo", aliases: ["volley", "volleyball"] },
+      { rank: 3, value: "Tennis", aliases: [] },
+      { rank: 4, value: "Basket", aliases: ["basketball", "pallacanestro"] },
+      { rank: 5, value: "Nuoto", aliases: ["swimming", "piscina"] },
+      { rank: 6, value: "Ciclismo", aliases: ["bici", "bicicletta", "cycling"] },
+      { rank: 7, value: "Corsa", aliases: ["running", "jogging", "correre"] },
+      { rank: 8, value: "Palestra", aliases: ["gym", "fitness", "allenamento"] },
     ],
   },
   {
     id: "social-media",
     name: "Social network più usati",
     answers: [
-      { rank: 1, value: "Facebook" },
-      { rank: 2, value: "YouTube" },
-      { rank: 3, value: "WhatsApp" },
-      { rank: 4, value: "Instagram" },
-      { rank: 5, value: "TikTok" },
-      { rank: 6, value: "Twitter/X" },
-      { rank: 7, value: "Snapchat" },
-      { rank: 8, value: "LinkedIn" },
+      { rank: 1, value: "Facebook", aliases: ["fb"] },
+      { rank: 2, value: "YouTube", aliases: ["you tube", "yt"] },
+      { rank: 3, value: "WhatsApp", aliases: ["whatsapp", "wa", "wapp"] },
+      { rank: 4, value: "Instagram", aliases: ["insta", "ig"] },
+      { rank: 5, value: "TikTok", aliases: ["tik tok"] },
+      { rank: 6, value: "Twitter/X", aliases: ["twitter", "x"] },
+      { rank: 7, value: "Snapchat", aliases: ["snap"] },
+      { rank: 8, value: "LinkedIn", aliases: ["linked in"] },
     ],
   },
   {

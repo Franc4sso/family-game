@@ -1,9 +1,16 @@
 import type { GameState } from "@/types/game.types";
 import type { GameAction } from "@/types/actions.types";
 import { areAllAnswersRevealed, calculateRoundPoints } from "@/services/gameLogic";
+import { matchAnswer, matchAnswerForFaceOff } from "@/services/matchingService";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case "SET_GAME_MODE":
+      return {
+        ...state,
+        gameMode: action.payload.mode,
+      };
+
     case "SET_TEAMS":
       return {
         ...state,
@@ -81,6 +88,52 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         winner = "B";
       } else {
         winner = undefined;
+      }
+
+      return {
+        ...state,
+        currentRound: {
+          ...state.currentRound,
+          answers: newAnswers,
+          faceOffWinner: winner,
+          state: "choose",
+        },
+      };
+    }
+
+    case "FACEOFF_NO_MASTER": {
+      if (!state.currentRound) return state;
+
+      const { teamA_answer, teamB_answer } = action.payload;
+
+      // Trova le risposte corrispondenti per entrambi i team
+      const matchA = matchAnswerForFaceOff(teamA_answer, state.currentRound.answers);
+      const matchB = matchAnswerForFaceOff(teamB_answer, state.currentRound.answers);
+
+      let newAnswers = [...state.currentRound.answers];
+
+      // Rivela le risposte trovate
+      if (matchA) {
+        newAnswers[matchA.index] = { ...newAnswers[matchA.index], revealed: true };
+      }
+      if (matchB) {
+        newAnswers[matchB.index] = { ...newAnswers[matchB.index], revealed: true };
+      }
+
+      // Determina il vincitore confrontando i rank
+      let winner: "A" | "B" | undefined;
+      if (matchA && matchB) {
+        if (matchA.rank === matchB.rank) {
+          winner = undefined; // Pareggio
+        } else {
+          winner = matchA.rank < matchB.rank ? "A" : "B";
+        }
+      } else if (matchA) {
+        winner = "A"; // Solo A ha indovinato
+      } else if (matchB) {
+        winner = "B"; // Solo B ha indovinato
+      } else {
+        winner = undefined; // Nessuno ha indovinato
       }
 
       return {
@@ -239,6 +292,95 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case "SUBMIT_ANSWER": {
+      if (!state.currentRound) return state;
+
+      const { input } = action.payload;
+      const answerIndex = matchAnswer(input, state.currentRound.answers);
+
+      // Risposta corretta trovata
+      if (answerIndex !== null) {
+        const newAnswers = [...state.currentRound.answers];
+        newAnswers[answerIndex] = {
+          ...newAnswers[answerIndex],
+          revealed: true,
+        };
+
+        // Se siamo in steal phase, la squadra attiva (che sta rubando) vince
+        if (state.currentRound.state === "steal") {
+          return {
+            ...state,
+            currentRound: {
+              ...state.currentRound,
+              answers: newAnswers,
+              state: "ended",
+            },
+          };
+        }
+
+        // Auto-end se tutte rivelate
+        if (areAllAnswersRevealed(newAnswers)) {
+          return {
+            ...state,
+            currentRound: {
+              ...state.currentRound,
+              answers: newAnswers,
+              state: "ended",
+            },
+          };
+        }
+
+        return {
+          ...state,
+          currentRound: {
+            ...state.currentRound,
+            answers: newAnswers,
+          },
+        };
+      }
+
+      // Risposta sbagliata
+      // Se siamo in steal phase, la squadra avversaria vince
+      if (state.currentRound.state === "steal") {
+        const otherTeam = state.currentRound.activeTeam === "A" ? "B" : "A";
+
+        return {
+          ...state,
+          currentRound: {
+            ...state.currentRound,
+            state: "ended",
+            activeTeam: otherTeam, // Impostiamo il vincitore come activeTeam
+          },
+        };
+      }
+
+      // Decrementa vita in modalità playing
+      const newLives = state.currentRound.livesRemaining - 1;
+      const newState = newLives === 0 ? "steal" : "playing";
+
+      // Determina chi fa lo steal
+      let stealingTeam: "A" | "B";
+      if (newLives === 0) {
+        if (state.currentRound.passedToOpponent && state.currentRound.faceOffWinner) {
+          stealingTeam = state.currentRound.faceOffWinner;
+        } else {
+          stealingTeam = state.currentRound.activeTeam === "A" ? "B" : "A";
+        }
+      } else {
+        stealingTeam = state.currentRound.activeTeam;
+      }
+
+      return {
+        ...state,
+        currentRound: {
+          ...state.currentRound,
+          livesRemaining: newLives,
+          state: newState,
+          activeTeam: stealingTeam,
+        },
+      };
+    }
+
     case "DECREMENT_LIFE": {
       if (!state.currentRound || state.currentRound.livesRemaining === 0) return state;
 
@@ -309,6 +451,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case "RESET_GAME":
       return {
+        gameMode: null,
         teamA: { name: "", score: 0 },
         teamB: { name: "", score: 0 },
         currentRound: null,

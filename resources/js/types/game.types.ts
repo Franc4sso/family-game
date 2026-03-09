@@ -3,6 +3,7 @@ export interface Answer {
   value: string;
   revealed: boolean;
   burned: boolean;
+  aliases?: string[];    // Sinonimi per matching automatico (modalità no-master)
 }
 
 export interface Round {
@@ -21,6 +22,7 @@ export interface Team {
 }
 
 export interface GameState {
+  gameMode: "master" | "no-master" | null;
   teamA: Team;
   teamB: Team;
   currentRound: Round | null;
@@ -28,6 +30,7 @@ export interface GameState {
 }
 
 export const initialGameState: GameState = {
+  gameMode: null,
   teamA: { name: "", score: 0 },
   teamB: { name: "", score: 0 },
   currentRound: null,

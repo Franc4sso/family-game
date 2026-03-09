@@ -59,6 +59,7 @@ export function MainView({ gameState, dispatch, onRoundEnd }: MainViewProps) {
           winningTeam={currentRound.activeTeam}
           teamA={teamA}
           teamB={teamB}
+          answers={currentRound.answers}
           dispatch={dispatch}
           onClose={onRoundEnd}
         />
