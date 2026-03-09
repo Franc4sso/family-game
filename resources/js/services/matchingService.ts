@@ -1,20 +1,43 @@
 import type { Answer } from "@/types/game.types";
 
-/**
- * Normalizza una stringa per il confronto:
- * - lowercase
- * - trim
- * - rimuove accenti
- * - rimuove caratteri speciali
- */
 function normalizeString(str: string): string {
   return str
     .toLowerCase()
     .trim()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Rimuove diacritici/accenti
-    .replace(/[^a-z0-9\s]/g, "") // Rimuove caratteri speciali
-    .replace(/\s+/g, " "); // Normalizza spazi multipli
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function levenshteinDistance(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  const dp: number[] = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const temp = dp[j];
+      dp[j] = a[i - 1] === b[j - 1]
+        ? prev
+        : 1 + Math.min(prev, dp[j], dp[j - 1]);
+      prev = temp;
+    }
+  }
+  return dp[n];
+}
+
+/**
+ * Considera un match valido se la distanza di modifica è entro soglia:
+ * - <= 4 caratteri: corrispondenza esatta
+ * - 5-7 caratteri: 1 errore tollerato
+ * - >= 8 caratteri: 2 errori tollerati
+ */
+function isMatch(input: string, target: string): boolean {
+  if (input === target) return true;
+  const maxLen = Math.max(input.length, target.length);
+  const tolerance = maxLen <= 4 ? 0 : maxLen <= 7 ? 1 : 2;
+  return tolerance > 0 && levenshteinDistance(input, target) <= tolerance;
 }
 
 /**
@@ -40,17 +63,14 @@ export function matchAnswer(input: string, answers: Answer[]): number | null {
       continue;
     }
 
-    // Confronta con il valore principale
     const normalizedValue = normalizeString(answer.value);
-    if (normalizedInput === normalizedValue) {
+    if (isMatch(normalizedInput, normalizedValue)) {
       return i;
     }
 
-    // Confronta con gli aliases (sinonimi)
     if (answer.aliases) {
       for (const alias of answer.aliases) {
-        const normalizedAlias = normalizeString(alias);
-        if (normalizedInput === normalizedAlias) {
+        if (isMatch(normalizedInput, normalizeString(alias))) {
           return i;
         }
       }
@@ -81,17 +101,14 @@ export function matchAnswerForFaceOff(
   for (let i = 0; i < answers.length; i++) {
     const answer = answers[i];
 
-    // Confronta con il valore principale
     const normalizedValue = normalizeString(answer.value);
-    if (normalizedInput === normalizedValue) {
+    if (isMatch(normalizedInput, normalizedValue)) {
       return { index: i, rank: answer.rank };
     }
 
-    // Confronta con gli aliases (sinonimi)
     if (answer.aliases) {
       for (const alias of answer.aliases) {
-        const normalizedAlias = normalizeString(alias);
-        if (normalizedInput === normalizedAlias) {
+        if (isMatch(normalizedInput, normalizeString(alias))) {
           return { index: i, rank: answer.rank };
         }
       }
