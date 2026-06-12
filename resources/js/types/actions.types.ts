@@ -1,7 +1,14 @@
-import type { Answer } from "./game.types";
+import type { Answer, GameMode, RuboOutcome } from "./game.types";
+import type { RuboQuestion } from "@/data/ruboQuestions";
 
 export type GameAction =
   | { type: "SET_TEAMS"; payload: { nameA: string; nameB: string } }
+  | { type: "SELECT_MODE"; payload: { mode: GameMode } }
+  | { type: "CLEAR_MODE" }
+  | { type: "START_RUBO"; payload: { deck: RuboQuestion[] } }
+  | { type: "RUBO_REVEAL_ANSWER" }
+  | { type: "RUBO_ASSIGN_OUTCOME"; payload: { team: "A" | "B"; outcome: RuboOutcome } }
+  | { type: "RUBO_NEXT_QUESTION" }
   | { type: "START_ROUND"; payload: { category: string; answers: Answer[] } }
   | { type: "FACEOFF_REVEAL"; payload: { teamA_answerIndex?: number | null; teamB_answerIndex?: number | null; teamA_custom?: string | null; teamB_custom?: string | null } }
   | { type: "CHOOSE_PLAY" }

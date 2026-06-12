@@ -1,9 +1,12 @@
 import React from "react";
 import { TeamSetup } from "./setup/TeamSetup";
+import { ModeSelect } from "./setup/ModeSelect";
+import { RuboSetup } from "./setup/RuboSetup";
 import { RoundSetup } from "./setup/RoundSetup";
 import { FaceOff } from "./setup/FaceOff";
 import { PlayOrPass } from "./setup/PlayOrPass";
 import { GameScreen } from "./game/GameScreen";
+import { RuboScreen } from "./game/RuboScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -14,6 +17,22 @@ export function App() {
     return <TeamSetup dispatch={dispatch} />;
   }
 
+  // Scelta della modalità di gioco
+  if (!state.mode) {
+    return <ModeSelect teamA={state.teamA} teamB={state.teamB} dispatch={dispatch} />;
+  }
+
+  // ─── Modalità Rubo ───
+  if (state.mode === "rubo") {
+    if (!state.rubo) {
+      return <RuboSetup teamA={state.teamA} teamB={state.teamB} dispatch={dispatch} />;
+    }
+    return (
+      <RuboScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />
+    );
+  }
+
+  // ─── Modalità Family Feud ───
   // Setup round se nessun round attivo
   if (!state.currentRound) {
     return <RoundSetup teamA={state.teamA} teamB={state.teamB} dispatch={dispatch} />;

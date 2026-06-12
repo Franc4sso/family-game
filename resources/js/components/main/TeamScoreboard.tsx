@@ -4,12 +4,13 @@ import type { Team } from "@/types/game.types";
 interface TeamScoreboardProps {
   teamA: Team;
   teamB: Team;
-  activeTeam: "A" | "B";
+  activeTeam: "A" | "B" | null;
   livesRemaining?: number;
   isStealPhase?: boolean;
+  showLives?: boolean;
 }
 
-export function TeamScoreboard({ teamA, teamB, activeTeam, livesRemaining = 0, isStealPhase = false }: TeamScoreboardProps) {
+export function TeamScoreboard({ teamA, teamB, activeTeam, livesRemaining = 0, isStealPhase = false, showLives = true }: TeamScoreboardProps) {
   const renderTeam = (team: Team, side: "A" | "B") => {
     const isActive = activeTeam === side;
     const bgColor = side === 'A' ? 'bg-blue-900/40' : 'bg-red-900/40';
@@ -31,7 +32,7 @@ export function TeamScoreboard({ teamA, teamB, activeTeam, livesRemaining = 0, i
         </div>
 
         <div className="flex items-center gap-3">
-          {isActive && !isStealPhase && (
+          {showLives && isActive && !isStealPhase && (
             <div className="flex items-center gap-1">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div

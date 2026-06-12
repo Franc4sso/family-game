@@ -1,6 +1,7 @@
 import type { GameState } from "@/types/game.types";
 import type { GameAction } from "@/types/actions.types";
 import { areAllAnswersRevealed, calculateRoundPoints } from "@/services/gameLogic";
+import { RUBO_POINTS } from "@/services/ruboService";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -10,6 +11,82 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         teamA: { name: action.payload.nameA, score: 0 },
         teamB: { name: action.payload.nameB, score: 0 },
       };
+
+    case "SELECT_MODE":
+      return {
+        ...state,
+        mode: action.payload.mode,
+      };
+
+    case "CLEAR_MODE":
+      // Torna alla scelta modalità, azzerando partita e punteggi.
+      return {
+        ...state,
+        teamA: { ...state.teamA, score: 0 },
+        teamB: { ...state.teamB, score: 0 },
+        mode: null,
+        rubo: null,
+        currentRound: null,
+        roundHistory: [],
+      };
+
+    case "START_RUBO":
+      return {
+        ...state,
+        mode: "rubo",
+        rubo: {
+          deck: action.payload.deck,
+          currentIndex: 0,
+          answerRevealed: false,
+          outcomeA: null,
+          outcomeB: null,
+        },
+      };
+
+    case "RUBO_REVEAL_ANSWER": {
+      if (!state.rubo) return state;
+      return { ...state, rubo: { ...state.rubo, answerRevealed: true } };
+    }
+
+    case "RUBO_ASSIGN_OUTCOME": {
+      if (!state.rubo) return state;
+
+      const { team, outcome } = action.payload;
+      const previous = team === "A" ? state.rubo.outcomeA : state.rubo.outcomeB;
+
+      // Se l'esito viene cambiato, prima annulliamo il punteggio precedente.
+      const previousPoints = previous ? RUBO_POINTS[previous] : 0;
+      const delta = RUBO_POINTS[outcome] - previousPoints;
+
+      const teamKey = team === "A" ? "teamA" : "teamB";
+
+      return {
+        ...state,
+        [teamKey]: {
+          ...state[teamKey],
+          score: state[teamKey].score + delta,
+        },
+        rubo: {
+          ...state.rubo,
+          outcomeA: team === "A" ? outcome : state.rubo.outcomeA,
+          outcomeB: team === "B" ? outcome : state.rubo.outcomeB,
+        },
+      };
+    }
+
+    case "RUBO_NEXT_QUESTION": {
+      if (!state.rubo) return state;
+      return {
+        ...state,
+        rubo: {
+          ...state.rubo,
+          currentIndex: state.rubo.currentIndex + 1,
+          answerRevealed: false,
+          outcomeA: null,
+          outcomeB: null,
+        },
+      };
+    }
 
     case "START_ROUND":
       return {
@@ -311,6 +388,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         teamA: { name: "", score: 0 },
         teamB: { name: "", score: 0 },
+        mode: null,
+        rubo: null,
         currentRound: null,
         roundHistory: [],
       };
