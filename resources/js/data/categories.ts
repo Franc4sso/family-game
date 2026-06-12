@@ -1,7 +1,7 @@
 export interface Category {
   id: string;
   name: string;
-  answers: { rank: number; value: string }[];
+  answers: { rank: number; value: string; aliases?: string[] }[];
 }
 
 export const CATEGORIES: Category[] = [

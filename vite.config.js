@@ -8,12 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
     plugins: [
-        react({
-            jsxRuntime: 'automatic',
-            babel: {
-                plugins: [],
-            },
-        }),
+        react(),
         tailwindcss(),
     ],
     resolve: {
@@ -21,8 +16,7 @@ export default defineConfig({
             '@': path.resolve(__dirname, './resources/js'),
         },
     },
-    build: {
-        outDir: 'dist',
-        emptyOutDir: true,
+    server: {
+        host: 'localhost',
     },
 });

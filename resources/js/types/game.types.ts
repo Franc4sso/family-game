@@ -3,6 +3,7 @@ export interface Answer {
   value: string;
   revealed: boolean;
   burned: boolean;
+  aliases?: string[];    // Sinonimi per matching automatico (modalità no-master)
 }
 
 export interface Round {
@@ -20,10 +21,10 @@ export interface Team {
   score: number;
 }
 
-// ─── Modalità "Rubo" ───
+// ─── Modalità di gioco ───
 import type { RuboQuestion } from "@/data/ruboQuestions";
 
-export type GameMode = "feud" | "rubo";
+export type GameMode = "master" | "no-master" | "rubo";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 
@@ -36,18 +37,18 @@ export interface RuboState {
 }
 
 export interface GameState {
+  gameMode: GameMode | null;
   teamA: Team;
   teamB: Team;
-  mode: GameMode | null;
   rubo: RuboState | null;
   currentRound: Round | null;
   roundHistory: Round[];
 }
 
 export const initialGameState: GameState = {
+  gameMode: null,
   teamA: { name: "", score: 0 },
   teamB: { name: "", score: 0 },
-  mode: null,
   rubo: null,
   currentRound: null,
   roundHistory: [],
