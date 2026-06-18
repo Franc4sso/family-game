@@ -112,7 +112,7 @@ export function MysteryScreen({ gameState, dispatch, onUndo, canUndo }: MysteryS
         <div className="bg-neutral-900/60 border border-white/10 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-500">
-              {character.category}
+              Personaggio
             </p>
             <p className={`text-base font-semibold truncate ${nameShown ? "text-neutral-50" : "text-neutral-700"}`}>
               {nameShown ? character.name : "• • • • • •"}
