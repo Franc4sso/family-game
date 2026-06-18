@@ -30,9 +30,9 @@ export function PlayOrPass({ teamA, teamB, currentRound, dispatch }: PlayOrPassP
   );
 
   return (
-    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-4 border-amber-400 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl">
-        <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400 mb-6 text-center drop-shadow-lg">
+    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-4 border-amber-400 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 max-w-lg w-full shadow-2xl my-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400 mb-5 sm:mb-6 text-center drop-shadow-lg text-balance">
           🎉 {winningTeam.name.toUpperCase()} VINCE! 🎉
         </h2>
 

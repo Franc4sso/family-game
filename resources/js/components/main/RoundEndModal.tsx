@@ -24,38 +24,38 @@ export function RoundEndModal({ winningTeam, teamA, teamB, answers, dispatch, on
   };
 
   return (
-    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-6 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-4 border-amber-400 rounded-3xl p-8 max-w-2xl w-full text-center shadow-2xl my-8">
-        <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400 mb-4 drop-shadow-lg animate-pulse">
+    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-3 sm:p-6 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-4 border-amber-400 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-2xl w-full text-center shadow-2xl my-4 sm:my-8">
+        <h2 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400 mb-4 drop-shadow-lg animate-pulse text-balance">
           🎉 {winner.name.toUpperCase()} VINCE! 🎉
         </h2>
-        <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 mb-6 shadow-xl">
-          <p className="text-4xl font-black text-white drop-shadow-lg">
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 mb-5 sm:mb-6 shadow-xl">
+          <p className="text-3xl sm:text-4xl font-black text-white drop-shadow-lg">
             {winner.score} {winner.score === 1 ? 'PUNTO' : 'PUNTI'}
           </p>
         </div>
 
         {/* Risposte non indovinate */}
         {missedAnswers.length > 0 && (
-          <div className="mb-6 bg-gray-900/50 rounded-2xl p-6 border-2 border-gray-700">
-            <h3 className="text-2xl font-bold text-red-400 mb-4">
+          <div className="mb-5 sm:mb-6 bg-gray-900/50 rounded-2xl p-4 sm:p-6 border-2 border-gray-700">
+            <h3 className="text-xl sm:text-2xl font-bold text-red-400 mb-4">
               ❌ Risposte non indovinate:
             </h3>
             <div className="grid gap-3">
               {missedAnswers.map((answer, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-r from-red-900/40 to-red-800/40 border-2 border-red-600/50 rounded-xl p-4 flex items-center justify-between"
+                  className="bg-gradient-to-r from-red-900/40 to-red-800/40 border-2 border-red-600/50 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-2"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-red-600 text-white font-black text-lg w-10 h-10 rounded-lg flex items-center justify-center">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="bg-red-600 text-white font-black text-base sm:text-lg w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0">
                       {answer.rank}
                     </div>
-                    <span className="text-white text-lg font-semibold">
+                    <span className="text-white text-base sm:text-lg font-semibold text-left break-words min-w-0">
                       {answer.value}
                     </span>
                   </div>
-                  <span className="text-red-400 text-sm font-semibold">MANCATA</span>
+                  <span className="text-red-400 text-xs sm:text-sm font-semibold shrink-0">MANCATA</span>
                 </div>
               ))}
             </div>
@@ -63,8 +63,8 @@ export function RoundEndModal({ winningTeam, teamA, teamB, answers, dispatch, on
         )}
 
         {missedAnswers.length === 0 && (
-          <div className="mb-6 bg-green-900/30 rounded-2xl p-4 border-2 border-green-600">
-            <p className="text-green-400 text-xl font-bold">
+          <div className="mb-5 sm:mb-6 bg-green-900/30 rounded-2xl p-4 border-2 border-green-600">
+            <p className="text-green-400 text-lg sm:text-xl font-bold">
               🎯 Tutte le risposte sono state indovinate!
             </p>
           </div>

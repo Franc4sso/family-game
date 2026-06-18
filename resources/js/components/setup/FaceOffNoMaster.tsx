@@ -100,20 +100,20 @@ export function FaceOffNoMaster({
   // Fase Team A
   if (phase === "teamA") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8">
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">⚡</div>
-            <h1 className="text-4xl font-black text-gray-800 mb-2">Face-Off</h1>
-            <p className="text-xl text-gray-600 mb-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-3 sm:p-4">
+        <div className="max-w-2xl w-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">⚡</div>
+            <h1 className="text-3xl sm:text-4xl font-black text-gray-800 mb-2">Face-Off</h1>
+            <p className="text-base sm:text-xl text-gray-600 mb-4">
               Categoria: <span className="font-bold">{currentRound.category}</span>
             </p>
-            <div className="bg-blue-100 text-blue-800 px-6 py-3 rounded-xl inline-block">
-              <p className="text-lg font-semibold">Turno: {teamA.name}</p>
+            <div className="bg-blue-100 text-blue-800 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl inline-block">
+              <p className="text-base sm:text-lg font-semibold">Turno: {teamA.name}</p>
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             <div>
               <label className="block text-gray-700 font-semibold mb-2">
                 Scrivi la tua risposta:
@@ -124,7 +124,7 @@ export function FaceOffNoMaster({
                 onChange={(e) => setTeamAAnswer(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleTeamASubmit()}
                 placeholder="Es: Cina, Stati Uniti..."
-                className="w-full px-4 py-3 text-lg text-gray-800 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none placeholder-gray-400"
+                className="w-full px-4 py-3 text-base sm:text-lg text-gray-800 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none placeholder-gray-400"
                 autoFocus
               />
             </div>
@@ -132,7 +132,7 @@ export function FaceOffNoMaster({
             <button
               onClick={handleTeamASubmit}
               disabled={teamAAnswer.trim() === ""}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg transition-colors shadow-lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-base sm:text-lg transition-colors shadow-lg"
             >
               Conferma Risposta
             </button>
@@ -145,18 +145,18 @@ export function FaceOffNoMaster({
   // Fase Transizione
   if (phase === "transition") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 text-center">
-          <div className="text-6xl mb-4">🔄</div>
-          <h2 className="text-3xl font-black text-gray-800 mb-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-3 sm:p-4">
+        <div className="max-w-2xl w-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 text-center">
+          <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">🔄</div>
+          <h2 className="text-2xl sm:text-3xl font-black text-gray-800 mb-4">
             Passa il telefono a {teamB.name}
           </h2>
-          <p className="text-gray-600 mb-8 text-lg">
+          <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">
             Assicurati che {teamA.name} non possa vedere lo schermo.
           </p>
           <button
             onClick={handleTransitionContinue}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-12 rounded-xl text-lg transition-colors shadow-lg"
+            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-4 px-12 rounded-xl text-base sm:text-lg transition-colors shadow-lg"
           >
             Pronto
           </button>
@@ -168,20 +168,20 @@ export function FaceOffNoMaster({
   // Fase Team B
   if (phase === "teamB") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8">
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">⚡</div>
-            <h1 className="text-4xl font-black text-gray-800 mb-2">Face-Off</h1>
-            <p className="text-xl text-gray-600 mb-4">
+      <div className="min-h-screen bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center p-3 sm:p-4">
+        <div className="max-w-2xl w-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">⚡</div>
+            <h1 className="text-3xl sm:text-4xl font-black text-gray-800 mb-2">Face-Off</h1>
+            <p className="text-base sm:text-xl text-gray-600 mb-4">
               Categoria: <span className="font-bold">{currentRound.category}</span>
             </p>
-            <div className="bg-red-100 text-red-800 px-6 py-3 rounded-xl inline-block">
-              <p className="text-lg font-semibold">Turno: {teamB.name}</p>
+            <div className="bg-red-100 text-red-800 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl inline-block">
+              <p className="text-base sm:text-lg font-semibold">Turno: {teamB.name}</p>
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             <div>
               <label className="block text-gray-700 font-semibold mb-2">
                 Scrivi la tua risposta:
@@ -192,7 +192,7 @@ export function FaceOffNoMaster({
                 onChange={(e) => setTeamBAnswer(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleTeamBSubmit()}
                 placeholder="Es: Cina, Stati Uniti..."
-                className="w-full px-4 py-3 text-lg text-gray-800 border-2 border-gray-300 rounded-xl focus:border-red-500 focus:outline-none placeholder-gray-400"
+                className="w-full px-4 py-3 text-base sm:text-lg text-gray-800 border-2 border-gray-300 rounded-xl focus:border-red-500 focus:outline-none placeholder-gray-400"
                 autoFocus
               />
             </div>
@@ -200,7 +200,7 @@ export function FaceOffNoMaster({
             <button
               onClick={handleTeamBSubmit}
               disabled={teamBAnswer.trim() === ""}
-              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg transition-colors shadow-lg"
+              className="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-base sm:text-lg transition-colors shadow-lg"
             >
               Conferma Risposta e Confronta
             </button>
@@ -213,38 +213,38 @@ export function FaceOffNoMaster({
   // Fase Reveal (mostra risultati)
   if (phase === "reveal") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 flex items-center justify-center p-4">
-        <div className="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-8">
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">🎯</div>
-            <h1 className="text-4xl font-black text-gray-800 mb-2">Risultati Face-Off</h1>
-            <p className="text-lg text-gray-600">
+      <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 flex items-center justify-center p-3 sm:p-4">
+        <div className="max-w-2xl w-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">🎯</div>
+            <h1 className="text-3xl sm:text-4xl font-black text-gray-800 mb-2">Risultati Face-Off</h1>
+            <p className="text-base sm:text-lg text-gray-600">
               Categoria: <span className="font-bold">{currentRound.category}</span>
             </p>
           </div>
 
-          <div className="space-y-4 mb-8">
+          <div className="space-y-4 mb-6 sm:mb-8">
             {/* Risultato Team A */}
-            <div className={`p-6 rounded-2xl border-4 ${
+            <div className={`p-4 sm:p-6 rounded-2xl border-4 ${
               teamAResult?.found
                 ? "bg-blue-50 border-blue-500"
                 : "bg-red-50 border-red-500"
             }`}>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-2xl font-bold text-gray-800">{teamA.name}</h3>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 min-w-0 truncate">{teamA.name}</h3>
                 {teamAResult?.found ? (
-                  <span className="bg-blue-600 text-white px-4 py-2 rounded-lg font-black text-xl">
+                  <span className="bg-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-black text-lg sm:text-xl shrink-0">
                     #{teamAResult.rank}
                   </span>
                 ) : (
-                  <span className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">
+                  <span className="bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-bold shrink-0">
                     ❌
                   </span>
                 )}
               </div>
               <div className="bg-white rounded-xl p-4 border-2 border-gray-200">
                 <p className="text-sm text-gray-500 mb-1">Risposta data:</p>
-                <p className="text-lg font-semibold text-gray-800">{teamAResult?.input}</p>
+                <p className="text-base sm:text-lg font-semibold text-gray-800 break-words">{teamAResult?.input}</p>
                 {teamAResult?.found && teamAResult.value && (
                   <p className="text-sm text-blue-600 mt-2">
                     ✓ Trovata: <span className="font-bold">{teamAResult.value}</span>
@@ -259,26 +259,26 @@ export function FaceOffNoMaster({
             </div>
 
             {/* Risultato Team B */}
-            <div className={`p-6 rounded-2xl border-4 ${
+            <div className={`p-4 sm:p-6 rounded-2xl border-4 ${
               teamBResult?.found
                 ? "bg-red-50 border-red-500"
                 : "bg-gray-50 border-gray-400"
             }`}>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-2xl font-bold text-gray-800">{teamB.name}</h3>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 min-w-0 truncate">{teamB.name}</h3>
                 {teamBResult?.found ? (
-                  <span className="bg-red-600 text-white px-4 py-2 rounded-lg font-black text-xl">
+                  <span className="bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-black text-lg sm:text-xl shrink-0">
                     #{teamBResult.rank}
                   </span>
                 ) : (
-                  <span className="bg-gray-600 text-white px-4 py-2 rounded-lg font-bold">
+                  <span className="bg-gray-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-bold shrink-0">
                     ❌
                   </span>
                 )}
               </div>
               <div className="bg-white rounded-xl p-4 border-2 border-gray-200">
                 <p className="text-sm text-gray-500 mb-1">Risposta data:</p>
-                <p className="text-lg font-semibold text-gray-800">{teamBResult?.input}</p>
+                <p className="text-base sm:text-lg font-semibold text-gray-800 break-words">{teamBResult?.input}</p>
                 {teamBResult?.found && teamBResult.value && (
                   <p className="text-sm text-red-600 mt-2">
                     ✓ Trovata: <span className="font-bold">{teamBResult.value}</span>
@@ -294,11 +294,11 @@ export function FaceOffNoMaster({
           </div>
 
           {/* Annuncio vincitore */}
-          <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl p-6 mb-6 text-center shadow-lg">
+          <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl p-4 sm:p-6 mb-5 sm:mb-6 text-center shadow-lg">
             {winner ? (
               <>
                 <div className="text-4xl mb-2">🎉</div>
-                <h2 className="text-3xl font-black text-white mb-2">
+                <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 text-balance">
                   {winner === "A" ? teamA.name : teamB.name} vince il Face-Off!
                 </h2>
                 <p className="text-white font-semibold">
@@ -308,7 +308,7 @@ export function FaceOffNoMaster({
             ) : (
               <>
                 <div className="text-4xl mb-2">🤝</div>
-                <h2 className="text-3xl font-black text-white mb-2">
+                <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">
                   Pareggio!
                 </h2>
                 <p className="text-white font-semibold">
@@ -322,7 +322,7 @@ export function FaceOffNoMaster({
 
           <button
             onClick={handleContinue}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl text-lg transition-colors shadow-lg"
+            className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-4 rounded-xl text-base sm:text-lg transition-colors shadow-lg"
           >
             Continua →
           </button>

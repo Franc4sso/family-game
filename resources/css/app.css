@@ -2,6 +2,23 @@
 
 @source '../**/*.tsx';
 
+/* ─── Base mobile-first: niente zoom indesiderato, safe-area, tap puliti ─── */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    /* rispetta notch/barre su iOS in standalone */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+* {
+    /* niente flash blu al tocco su mobile */
+    -webkit-tap-highlight-color: transparent;
+}
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
