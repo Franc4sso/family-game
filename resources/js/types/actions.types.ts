@@ -1,5 +1,6 @@
 import type { Answer, GameMode, RuboOutcome } from "./game.types";
 import type { RuboQuestion } from "@/data/ruboQuestions";
+import type { MysteryCharacter } from "@/data/charactersQuestions";
 
 export type GameAction =
   | { type: "SET_GAME_MODE"; payload: { mode: GameMode } }
@@ -9,6 +10,10 @@ export type GameAction =
   | { type: "RUBO_REVEAL_ANSWER" }
   | { type: "RUBO_ASSIGN_OUTCOME"; payload: { team: "A" | "B"; outcome: RuboOutcome } }
   | { type: "RUBO_NEXT_QUESTION" }
+  | { type: "START_MYSTERY"; payload: { deck: MysteryCharacter[] } }
+  | { type: "MYSTERY_REVEAL_CLUE" }
+  | { type: "MYSTERY_SOLVED"; payload: { team: "A" | "B" } }
+  | { type: "MYSTERY_NEXT" }
   | { type: "START_ROUND"; payload: { category: string; answers: Answer[] } }
   | { type: "FACEOFF_REVEAL"; payload: { teamA_answerIndex?: number | null; teamB_answerIndex?: number | null; teamA_custom?: string | null; teamB_custom?: string | null } }
   | { type: "FACEOFF_NO_MASTER"; payload: { teamA_answer: string; teamB_answer: string } }

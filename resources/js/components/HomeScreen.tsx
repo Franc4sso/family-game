@@ -72,6 +72,22 @@ export function HomeScreen({ dispatch }: HomeScreenProps) {
               <div className="ml-4 text-5xl">🃏</div>
             </div>
           </button>
+
+          {/* Modalità Personaggio Misterioso */}
+          <button
+            onClick={() => handleModeSelect("mystery")}
+            className="group relative bg-gradient-to-r from-indigo-500 to-violet-700 hover:from-indigo-600 hover:to-violet-800 text-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-left flex-1">
+                <h2 className="text-3xl font-bold mb-2">Personaggio Misterioso</h2>
+                <p className="text-indigo-100 text-sm md:text-base">
+                  Tu dai gli indizi, dal più difficile al più facile. Chi indovina prima vince più punti: 10 con un solo indizio, 1 con dieci.
+                </p>
+              </div>
+              <div className="ml-4 text-5xl">🕵️</div>
+            </div>
+          </button>
         </div>
 
         <div className="mt-8 text-center text-gray-500 text-sm">

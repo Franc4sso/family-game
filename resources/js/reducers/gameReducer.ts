@@ -3,6 +3,7 @@ import type { GameAction } from "@/types/actions.types";
 import { areAllAnswersRevealed, calculateRoundPoints } from "@/services/gameLogic";
 import { matchAnswer, matchAnswerForFaceOff } from "@/services/matchingService";
 import { RUBO_POINTS } from "@/services/ruboService";
+import { cluePoints, MYSTERY_MAX_CLUES } from "@/services/mysteryService";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -18,6 +19,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         gameMode: null,
         rubo: null,
+        mystery: null,
         teamA: { ...state.teamA, score: 0 },
         teamB: { ...state.teamB, score: 0 },
         currentRound: null,
@@ -78,6 +80,74 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           answerRevealed: false,
           outcomeA: null,
           outcomeB: null,
+        },
+      };
+    }
+
+    // ─────────────────── MODALITÀ MYSTERY ───────────────────
+    case "START_MYSTERY":
+      return {
+        ...state,
+        gameMode: "mystery",
+        mystery: {
+          deck: action.payload.deck,
+          currentIndex: 0,
+          cluesRevealed: 1,
+          solvedBy: null,
+        },
+      };
+
+    case "MYSTERY_REVEAL_CLUE": {
+      if (!state.mystery) return state;
+      return {
+        ...state,
+        mystery: {
+          ...state.mystery,
+          cluesRevealed: Math.min(
+            state.mystery.cluesRevealed + 1,
+            MYSTERY_MAX_CLUES
+          ),
+        },
+      };
+    }
+
+    case "MYSTERY_SOLVED": {
+      if (!state.mystery) return state;
+
+      const { team } = action.payload;
+      const points = cluePoints(state.mystery.cluesRevealed);
+
+      // Idempotente: se una squadra aveva già indovinato, prima togliamo i
+      // suoi punti, poi assegniamo alla nuova squadra.
+      const previous = state.mystery.solvedBy;
+      if (previous === team) return state; // nessun cambiamento
+
+      let teamA = state.teamA;
+      let teamB = state.teamB;
+
+      if (previous === "A") teamA = { ...teamA, score: teamA.score - points };
+      if (previous === "B") teamB = { ...teamB, score: teamB.score - points };
+
+      if (team === "A") teamA = { ...teamA, score: teamA.score + points };
+      if (team === "B") teamB = { ...teamB, score: teamB.score + points };
+
+      return {
+        ...state,
+        teamA,
+        teamB,
+        mystery: { ...state.mystery, solvedBy: team },
+      };
+    }
+
+    case "MYSTERY_NEXT": {
+      if (!state.mystery) return state;
+      return {
+        ...state,
+        mystery: {
+          ...state.mystery,
+          currentIndex: state.mystery.currentIndex + 1,
+          cluesRevealed: 1,
+          solvedBy: null,
         },
       };
     }
@@ -526,6 +596,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         teamA: { name: "", score: 0 },
         teamB: { name: "", score: 0 },
         rubo: null,
+        mystery: null,
         currentRound: null,
         roundHistory: [],
       };
