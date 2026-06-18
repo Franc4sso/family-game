@@ -457,8 +457,8 @@ export const MYSTERY_CHARACTERS: MysteryCharacter[] = [
     category: "Marvel",
     clues: [
       "Per regnare deve bere un'erba sacra durante un rito ancestrale, giurando fedelta a una divinita protettrice che gli concede forza e agilita sovrumane.",
-      "Governa una nazione africana che si finge poverissima per nascondere al mondo la propria tecnologia avanzatissima.",
-      "La sua terra e l'unica al mondo a possedere un metallo nato da un meteorite caduto in epoca preistorica.",
+      "Il suo titolo si trasmette per sfida rituale: chi vuole il trono deve batterlo in un duello cerimoniale davanti al popolo.",
+      "Governa un regno che si mostra al mondo come poverissimo per celare una tecnologia avanzatissima.",
       "Quel metallo rarissimo si chiama vibranio ed e in grado di assorbire qualunque vibrazione.",
       "Sua sorella minore, geniale inventrice, progetta gran parte delle sue armi e dei suoi equipaggiamenti.",
       "Il film a lui dedicato nel 2018 ha avuto un enorme impatto culturale ed e diventato un fenomeno mondiale.",
@@ -763,7 +763,7 @@ export const MYSTERY_CHARACTERS: MysteryCharacter[] = [
     category: "Personaggi storici",
     clues: [
       "Da giovane, prima della fama, timbrava domande di brevetto dietro una scrivania a Berna.",
-      "Un comitato gli assegnò il massimo riconoscimento per la fisica nel 1921, ma non per la teoria che lo rese leggendario.",
+      "Suonava il violino con passione e diceva che, se non avesse fatto il suo mestiere, sarebbe diventato musicista.",
       "Secondo una diffusa leggenda da ragazzo arrancava a scuola, voce in realtà esagerata e in gran parte falsa.",
       "Gli venne offerta la presidenza di un giovane Stato del Medio Oriente, ma lui declinò l'incarico.",
       "Rivoluzionò il modo di intendere spazio e tempo con la sua celebre teoria della relativita.",
@@ -883,7 +883,7 @@ export const MYSTERY_CHARACTERS: MysteryCharacter[] = [
     clues: [
       "Il suo creatore gli diede il nome del proprio padre, e ai membri della sua famiglia i nomi dei propri parenti reali.",
       "Lavora come addetto alla sicurezza, in modo incompetente, in una centrale che produce energia.",
-      "La centrale dove lavora è di proprietà di un anziano e avido miliardario, il signor Burns.",
+      "Il suo capo è un anziano e avido miliardario che lo licenzia e riassume di continuo, senza mai ricordarsi il suo nome.",
       "È un personaggio di un longevo cartone animato satirico per adulti.",
       "Come tutti nella sua serie ha la pelle gialla e quattro dita per mano.",
       "È pigro e goloso, e passa le serate al bar di Boe bevendo birra Duff.",
@@ -1087,7 +1087,7 @@ export const MYSTERY_CHARACTERS: MysteryCharacter[] = [
     clues: [
       "Esordì nei fumetti come Monarca di un lontano pianeta, giunto sulla Terra con l'intento di rapire esseri umani per studiarli.",
       "Appartiene a una rara specie aliena vegetale, capace di rigenerare e assorbire la materia legnosa.",
-      "È una creatura aliena, non un umano.",
+      "Da una sua talea può rinascere completamente, anche da un solo rametto sopravvissuto.",
       "Ha l'aspetto di un grande albero che cammina.",
       "Può far crescere e allungare a piacere i suoi rami.",
       "In un film rinasce come una piccola pianta che balla.",
@@ -1138,7 +1138,7 @@ export const MYSTERY_CHARACTERS: MysteryCharacter[] = [
     clues: [
       "Non riesce a restare a galla per via di una composizione corporea innaturale, troppo densa rispetto a una creatura comune.",
       "Fu concepito come arma da combattimento dotata di forza e resistenza sproporzionate rispetto alla sua stazza minuscola.",
-      "La sua sigla identificativa porta il numero 626.",
+      "Sa arrampicarsi a testa in giù, vede al buio ed è capace di sollevare oggetti molte volte più pesanti di lui.",
       "Sfuggito a una custodia e in fuga, viene scambiato per un animaletto domestico e adottato senza che nessuno sospetti la sua vera natura.",
       "A salvarlo dalla solitudine è una bambina che lo prende con sé come fosse un cucciolo.",
       "Inizialmente caotico e indisciplinato, col tempo scopre il significato di avere una famiglia.",
@@ -1188,8 +1188,8 @@ export const MYSTERY_CHARACTERS: MysteryCharacter[] = [
     category: "Personaggi storici",
     clues: [
       "I suoi quaderni di laboratorio sono ancora oggi così radioattivi da essere conservati in casseforti piombate e consultabili solo firmando una liberatoria.",
-      "Conseguì una laurea anche in matematica, oltre a quella in fisica, frequentando una clandestina \"università volante\" prima di lasciare il suo Paese.",
-      "Durante la Prima guerra mondiale attrezzò dei furgoni con apparecchi a raggi X e li guidò personalmente al fronte per soccorrere i soldati.",
+      "Da giovane, nel suo Paese natale, studiò di nascosto in una clandestina \"università volante\" perché alle donne era vietato l'accesso agli atenei ufficiali.",
+      "Lavorò gomito a gomito con il marito in un laboratorio di fortuna ricavato in un capannone, mescolando di persona tonnellate di minerali.",
       "Si rifiutò di brevettare il suo metodo di lavorazione, rinunciando a un'enorme fortuna perché riteneva la scienza patrimonio di tutti.",
       "Nata in un Paese dell'Europa orientale, dovette trasferirsi a Parigi per poter accedere agli studi scientifici.",
       "Battezzò uno degli elementi che individuò con il nome della sua terra natale, in segno di patriottismo.",
