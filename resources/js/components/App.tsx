@@ -9,6 +9,8 @@ import { GameScreen } from "./game/GameScreen";
 import { NoMasterGameScreen } from "./game/NoMasterGameScreen";
 import { RuboSetup } from "./setup/RuboSetup";
 import { RuboScreen } from "./game/RuboScreen";
+import { MysterySetup } from "./setup/MysterySetup";
+import { MysteryScreen } from "./game/MysteryScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -31,6 +33,16 @@ export function App() {
     }
     return (
       <RuboScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />
+    );
+  }
+
+  // ========== MODALITÀ PERSONAGGIO MISTERIOSO ==========
+  if (state.gameMode === "mystery") {
+    if (!state.mystery) {
+      return <MysterySetup teamA={state.teamA} teamB={state.teamB} dispatch={dispatch} />;
+    }
+    return (
+      <MysteryScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />
     );
   }
 

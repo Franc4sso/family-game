@@ -23,8 +23,9 @@ export interface Team {
 
 // ─── Modalità di gioco ───
 import type { RuboQuestion } from "@/data/ruboQuestions";
+import type { MysteryCharacter } from "@/data/charactersQuestions";
 
-export type GameMode = "master" | "no-master" | "rubo";
+export type GameMode = "master" | "no-master" | "rubo" | "mystery";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 
@@ -36,11 +37,19 @@ export interface RuboState {
   outcomeB: RuboOutcome | null;
 }
 
+export interface MysteryState {
+  deck: MysteryCharacter[];
+  currentIndex: number;
+  cluesRevealed: number;        // parte da 1
+  solvedBy: "A" | "B" | null;
+}
+
 export interface GameState {
   gameMode: GameMode | null;
   teamA: Team;
   teamB: Team;
   rubo: RuboState | null;
+  mystery: MysteryState | null;
   currentRound: Round | null;
   roundHistory: Round[];
 }
@@ -50,6 +59,7 @@ export const initialGameState: GameState = {
   teamA: { name: "", score: 0 },
   teamB: { name: "", score: 0 },
   rubo: null,
+  mystery: null,
   currentRound: null,
   roundHistory: [],
 };
