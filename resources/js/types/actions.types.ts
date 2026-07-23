@@ -1,6 +1,7 @@
 import type { Answer, GameMode, RuboOutcome } from "./game.types";
 import type { RuboQuestion } from "@/data/ruboQuestions";
 import type { MysteryCharacter } from "@/data/charactersQuestions";
+import type { HLPair } from "@/services/higherLowerService";
 
 export type GameAction =
   | { type: "SET_GAME_MODE"; payload: { mode: GameMode } }
@@ -14,6 +15,10 @@ export type GameAction =
   | { type: "MYSTERY_REVEAL_CLUE" }
   | { type: "MYSTERY_SOLVED"; payload: { team: "A" | "B" } }
   | { type: "MYSTERY_NEXT" }
+  | { type: "START_HL"; payload: { chain: HLPair[]; totalRounds: number } }
+  | { type: "HL_GUESS"; payload: { guess: "higher" | "lower" } }
+  | { type: "HL_NEXT" }
+  | { type: "HL_NEXT_ROUND" }
   | { type: "START_ROUND"; payload: { category: string; answers: Answer[] } }
   | { type: "FACEOFF_REVEAL"; payload: { teamA_answerIndex?: number | null; teamB_answerIndex?: number | null; teamA_custom?: string | null; teamB_custom?: string | null } }
   | { type: "FACEOFF_NO_MASTER"; payload: { teamA_answer: string; teamB_answer: string } }

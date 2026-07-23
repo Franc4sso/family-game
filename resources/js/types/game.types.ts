@@ -24,8 +24,9 @@ export interface Team {
 // ─── Modalità di gioco ───
 import type { RuboQuestion } from "@/data/ruboQuestions";
 import type { MysteryCharacter } from "@/data/charactersQuestions";
+import type { HLPair } from "@/services/higherLowerService";
 
-export type GameMode = "master" | "no-master" | "rubo" | "mystery";
+export type GameMode = "master" | "no-master" | "rubo" | "mystery" | "higher-lower";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 
@@ -44,12 +45,38 @@ export interface MysteryState {
   solvedBy: "A" | "B" | null;
 }
 
+/**
+ * Stato di "Più alto o più basso".
+ *
+ * Le due squadre si alternano sulla stessa catena: chi sbaglia interrompe
+ * la catena e il round finisce. Il punto va a chi ha resistito.
+ */
+export interface HigherLowerState {
+  chain: HLPair[];
+  currentIndex: number;
+  /** Squadra che deve rispondere al confronto corrente. */
+  activeTeam: "A" | "B";
+  /** Squadra che inizia il round successivo: si alterna a ogni round. */
+  startingTeam: "A" | "B";
+  /** Risposta data, in attesa di passare al confronto successivo. */
+  lastGuess: { team: "A" | "B"; correct: boolean } | null;
+  /** Risposte corrette consecutive nel round corrente. */
+  streak: number;
+  /** Catena più lunga raggiunta nella partita. */
+  bestStreak: number;
+  /** Round giocati finora. */
+  roundsPlayed: number;
+  /** Round totali previsti per la partita. */
+  totalRounds: number;
+}
+
 export interface GameState {
   gameMode: GameMode | null;
   teamA: Team;
   teamB: Team;
   rubo: RuboState | null;
   mystery: MysteryState | null;
+  higherLower: HigherLowerState | null;
   currentRound: Round | null;
   roundHistory: Round[];
 }
@@ -60,6 +87,7 @@ export const initialGameState: GameState = {
   teamB: { name: "", score: 0 },
   rubo: null,
   mystery: null,
+  higherLower: null,
   currentRound: null,
   roundHistory: [],
 };

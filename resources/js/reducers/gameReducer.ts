@@ -4,6 +4,7 @@ import { areAllAnswersRevealed, calculateRoundPoints } from "@/services/gameLogi
 import { matchAnswer, matchAnswerForFaceOff } from "@/services/matchingService";
 import { RUBO_POINTS } from "@/services/ruboService";
 import { cluePoints, MYSTERY_MAX_CLUES } from "@/services/mysteryService";
+import { isGuessCorrect } from "@/services/higherLowerService";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -20,6 +21,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         gameMode: null,
         rubo: null,
         mystery: null,
+        higherLower: null,
         teamA: { ...state.teamA, score: 0 },
         teamB: { ...state.teamB, score: 0 },
         currentRound: null,
@@ -148,6 +150,93 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           currentIndex: state.mystery.currentIndex + 1,
           cluesRevealed: 1,
           solvedBy: null,
+        },
+      };
+    }
+
+    // ─────────────── MODALITÀ PIÙ ALTO O PIÙ BASSO ───────────────
+    case "START_HL":
+      return {
+        ...state,
+        gameMode: "higher-lower",
+        higherLower: {
+          chain: action.payload.chain,
+          currentIndex: 0,
+          activeTeam: "A",
+          startingTeam: "A",
+          lastGuess: null,
+          streak: 0,
+          bestStreak: 0,
+          roundsPlayed: 0,
+          totalRounds: action.payload.totalRounds,
+        },
+      };
+
+    case "HL_GUESS": {
+      const hl = state.higherLower;
+      // Una seconda risposta sullo stesso confronto viene ignorata: senza
+      // questo controllo un doppio tap assegnerebbe due volte il punto.
+      if (!hl || hl.lastGuess !== null) return state;
+      if (hl.currentIndex >= hl.chain.length) return state;
+
+      const pair = hl.chain[hl.currentIndex];
+      const correct = isGuessCorrect(pair, action.payload.guess);
+      const streak = correct ? hl.streak + 1 : hl.streak;
+
+      // Chi sbaglia regala il punto all'avversario: il round finisce qui.
+      const loser = hl.activeTeam;
+      const winnerKey = loser === "A" ? "teamB" : "teamA";
+
+      return {
+        ...state,
+        ...(correct
+          ? {}
+          : { [winnerKey]: { ...state[winnerKey], score: state[winnerKey].score + 1 } }),
+        higherLower: {
+          ...hl,
+          lastGuess: { team: hl.activeTeam, correct },
+          streak,
+          bestStreak: Math.max(hl.bestStreak, streak),
+        },
+      };
+    }
+
+    case "HL_NEXT": {
+      const hl = state.higherLower;
+      if (!hl || !hl.lastGuess) return state;
+
+      // Dopo un errore si passa al round successivo, non al confronto dopo.
+      if (!hl.lastGuess.correct) return state;
+
+      return {
+        ...state,
+        higherLower: {
+          ...hl,
+          currentIndex: hl.currentIndex + 1,
+          activeTeam: hl.activeTeam === "A" ? "B" : "A",
+          lastGuess: null,
+        },
+      };
+    }
+
+    case "HL_NEXT_ROUND": {
+      const hl = state.higherLower;
+      if (!hl) return state;
+
+      // La squadra che apre si alterna, così nessuna delle due parte sempre
+      // per prima sul confronto più facile della catena.
+      const nextStarter = hl.startingTeam === "A" ? "B" : "A";
+
+      return {
+        ...state,
+        higherLower: {
+          ...hl,
+          currentIndex: hl.currentIndex + 1,
+          activeTeam: nextStarter,
+          startingTeam: nextStarter,
+          lastGuess: null,
+          streak: 0,
+          roundsPlayed: hl.roundsPlayed + 1,
         },
       };
     }
@@ -597,6 +686,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         teamB: { name: "", score: 0 },
         rubo: null,
         mystery: null,
+        higherLower: null,
         currentRound: null,
         roundHistory: [],
       };

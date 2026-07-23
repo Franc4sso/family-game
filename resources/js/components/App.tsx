@@ -11,6 +11,8 @@ import { RuboSetup } from "./setup/RuboSetup";
 import { RuboScreen } from "./game/RuboScreen";
 import { MysterySetup } from "./setup/MysterySetup";
 import { MysteryScreen } from "./game/MysteryScreen";
+import { HigherLowerSetup } from "./setup/HigherLowerSetup";
+import { HigherLowerScreen } from "./game/HigherLowerScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -43,6 +45,23 @@ export function App() {
     }
     return (
       <MysteryScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />
+    );
+  }
+
+  // ========== MODALITÀ PIÙ ALTO O PIÙ BASSO ==========
+  if (state.gameMode === "higher-lower") {
+    if (!state.higherLower) {
+      return (
+        <HigherLowerSetup teamA={state.teamA} teamB={state.teamB} dispatch={dispatch} />
+      );
+    }
+    return (
+      <HigherLowerScreen
+        gameState={state}
+        dispatch={dispatch}
+        onUndo={undo}
+        canUndo={canUndo}
+      />
     );
   }
 

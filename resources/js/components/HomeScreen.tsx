@@ -88,6 +88,24 @@ export function HomeScreen({ dispatch }: HomeScreenProps) {
               <div className="text-4xl sm:text-5xl shrink-0">🕵️</div>
             </div>
           </button>
+          {/* Modalità Più alto o più basso */}
+          <button
+            onClick={() => handleModeSelect("higher-lower")}
+            className="group relative bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-left flex-1 min-w-0">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
+                  Più alto o più basso
+                </h2>
+                <p className="text-amber-100 text-sm md:text-base">
+                  Due squadre, una sola catena. A turno indovinate quale numero è più
+                  grande: chi sbaglia la spezza e regala il punto.
+                </p>
+              </div>
+              <div className="text-4xl sm:text-5xl shrink-0">📈</div>
+            </div>
+          </button>
         </div>
 
         <div className="mt-6 sm:mt-8 text-center text-gray-500 text-xs sm:text-sm">
