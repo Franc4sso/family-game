@@ -106,6 +106,23 @@ export function HomeScreen({ dispatch }: HomeScreenProps) {
               <div className="text-4xl sm:text-5xl shrink-0">📈</div>
             </div>
           </button>
+          {/* Modalità Indovina il Numero */}
+          <button
+            onClick={() => handleModeSelect("guess-number")}
+            className="group relative bg-gradient-to-r from-teal-600 to-cyan-700 hover:from-teal-700 hover:to-cyan-800 text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-left flex-1 min-w-0">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
+                  Indovina il Numero
+                </h2>
+                <p className="text-teal-100 text-sm md:text-base">
+                  Domande a cifre: rispondete a voce, poi svelate la risposta esatta un clic alla volta.
+                </p>
+              </div>
+              <div className="text-4xl sm:text-5xl shrink-0">🔢</div>
+            </div>
+          </button>
         </div>
 
         <div className="mt-6 sm:mt-8 text-center text-gray-500 text-xs sm:text-sm">

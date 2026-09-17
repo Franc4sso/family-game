@@ -163,29 +163,28 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           chain: action.payload.chain,
           currentIndex: 0,
           activeTeam: "A",
-          startingTeam: "A",
           lastGuess: null,
           streak: 0,
-          bestStreak: 0,
-          roundsPlayed: 0,
-          totalRounds: action.payload.totalRounds,
+          correctByTeam: { A: 0, B: 0 },
+          loser: null,
+          exhausted: false,
         },
       };
 
     case "HL_GUESS": {
       const hl = state.higherLower;
       // Una seconda risposta sullo stesso confronto viene ignorata: senza
-      // questo controllo un doppio tap assegnerebbe due volte il punto.
-      if (!hl || hl.lastGuess !== null) return state;
-      if (hl.currentIndex >= hl.chain.length) return state;
+      // questo controllo un doppio tap falserebbe il conteggio.
+      if (!hl || hl.lastGuess !== null || hl.loser !== null) return state;
+      if (hl.currentIndex + 1 >= hl.chain.length) return state;
 
-      const pair = hl.chain[hl.currentIndex];
-      const correct = isGuessCorrect(pair, action.payload.guess);
-      const streak = correct ? hl.streak + 1 : hl.streak;
+      const reference = hl.chain[hl.currentIndex];
+      const challenger = hl.chain[hl.currentIndex + 1];
+      const correct = isGuessCorrect(reference, challenger, action.payload.guess);
+      const team = hl.activeTeam;
 
-      // Chi sbaglia regala il punto all'avversario: il round finisce qui.
-      const loser = hl.activeTeam;
-      const winnerKey = loser === "A" ? "teamB" : "teamA";
+      // Morte immediata: chi sbaglia perde la partita, l'altro vince.
+      const winnerKey = team === "A" ? "teamB" : "teamA";
 
       return {
         ...state,
@@ -194,9 +193,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           : { [winnerKey]: { ...state[winnerKey], score: state[winnerKey].score + 1 } }),
         higherLower: {
           ...hl,
-          lastGuess: { team: hl.activeTeam, correct },
-          streak,
-          bestStreak: Math.max(hl.bestStreak, streak),
+          lastGuess: { team, correct },
+          streak: correct ? hl.streak + 1 : hl.streak,
+          correctByTeam: correct
+            ? { ...hl.correctByTeam, [team]: hl.correctByTeam[team] + 1 }
+            : hl.correctByTeam,
+          loser: correct ? null : team,
         },
       };
     }
@@ -205,38 +207,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const hl = state.higherLower;
       if (!hl || !hl.lastGuess) return state;
 
-      // Dopo un errore si passa al round successivo, non al confronto dopo.
+      // Dopo un errore la partita è finita: non si scorre più.
       if (!hl.lastGuess.correct) return state;
 
+      // L'elemento appena indovinato diventa il nuovo riferimento.
+      const nextIndex = hl.currentIndex + 1;
+
       return {
         ...state,
         higherLower: {
           ...hl,
-          currentIndex: hl.currentIndex + 1,
+          currentIndex: nextIndex,
           activeTeam: hl.activeTeam === "A" ? "B" : "A",
           lastGuess: null,
-        },
-      };
-    }
-
-    case "HL_NEXT_ROUND": {
-      const hl = state.higherLower;
-      if (!hl) return state;
-
-      // La squadra che apre si alterna, così nessuna delle due parte sempre
-      // per prima sul confronto più facile della catena.
-      const nextStarter = hl.startingTeam === "A" ? "B" : "A";
-
-      return {
-        ...state,
-        higherLower: {
-          ...hl,
-          currentIndex: hl.currentIndex + 1,
-          activeTeam: nextStarter,
-          startingTeam: nextStarter,
-          lastGuess: null,
-          streak: 0,
-          roundsPlayed: hl.roundsPlayed + 1,
+          exhausted: nextIndex + 1 >= hl.chain.length,
         },
       };
     }

@@ -13,6 +13,7 @@ import { MysterySetup } from "./setup/MysterySetup";
 import { MysteryScreen } from "./game/MysteryScreen";
 import { HigherLowerSetup } from "./setup/HigherLowerSetup";
 import { HigherLowerScreen } from "./game/HigherLowerScreen";
+import { GuessNumberScreen } from "./game/GuessNumberScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -21,6 +22,12 @@ export function App() {
   // Selezione modalità di gioco
   if (!state.gameMode) {
     return <HomeScreen dispatch={dispatch} />;
+  }
+
+  // ========== MODALITÀ INDOVINA IL NUMERO ==========
+  // Nessuna squadra/punteggio: lista domande diretta.
+  if (state.gameMode === "guess-number") {
+    return <GuessNumberScreen dispatch={dispatch} />;
   }
 
   // Setup squadre se non configurate

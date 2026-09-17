@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { formatValue } from "@/services/higherLowerService";
+import { formatValue, isTightCall } from "@/services/higherLowerService";
 import type { GameState, Team } from "@/types/game.types";
 import type { GameAction } from "@/types";
 
@@ -21,31 +21,31 @@ export function HigherLowerScreen({
 
   if (!hl) return null;
 
-  const outOfPairs = hl.currentIndex >= hl.chain.length;
-  const finished = hl.roundsPlayed >= hl.totalRounds || outOfPairs;
+  const finished = hl.loser !== null || hl.exhausted;
 
   // ───────────────────────── Schermata finale ─────────────────────────
   if (finished) {
-    const tie = teamA.score === teamB.score;
-    const winner: Team | null = tie ? null : teamA.score > teamB.score ? teamA : teamB;
+    const winner: Team | null =
+      hl.loser === null ? null : hl.loser === "A" ? teamB : teamA;
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-8 bg-neutral-950 text-neutral-100">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-7 bg-neutral-950 text-neutral-100">
         <div className="text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">
-            Fine partita
+            {hl.loser ? "Catena interrotta" : "Catena esaurita"}
           </p>
           <h2 className="text-2xl font-semibold">
-            {winner ? `Vince ${winner.name}` : "Pareggio"}
+            {winner ? `Vince ${winner.name}` : "Pareggio: nessuno ha sbagliato"}
           </h2>
-          <p className="text-xs text-neutral-500 mt-3">
-            Catena più lunga: {hl.bestStreak}
+          <p className="text-4xl font-semibold tabular-nums mt-5">{hl.streak}</p>
+          <p className="text-xs text-neutral-500 mt-1">
+            confronti indovinati di fila
           </p>
         </div>
 
         <div className="w-full max-w-sm grid grid-cols-2 gap-px bg-white/10 rounded-2xl overflow-hidden">
           {([["A", teamA], ["B", teamB]] as const).map(([side, t]) => {
-            const win = !tie && winner === t;
+            const win = winner === t;
             return (
               <div key={side} className="bg-neutral-900 p-5 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-2">
@@ -61,18 +61,13 @@ export function HigherLowerScreen({
                     win ? "text-white" : "text-neutral-400"
                   }`}
                 >
-                  {t.score}
+                  {hl.correctByTeam[side]}
                 </div>
+                <p className="text-[10px] text-neutral-600 mt-1">risposte giuste</p>
               </div>
             );
           })}
         </div>
-
-        {outOfPairs && hl.roundsPlayed < hl.totalRounds && (
-          <p className="text-xs text-neutral-600 text-center max-w-xs">
-            I confronti disponibili sono finiti prima dell'ultimo round.
-          </p>
-        )}
 
         <button
           onClick={() => dispatch({ type: "CLEAR_MODE" })}
@@ -85,57 +80,54 @@ export function HigherLowerScreen({
   }
 
   // ───────────────────────── Schermata di gioco ─────────────────────────
-  const pair = hl.chain[hl.currentIndex];
+  const reference = hl.chain[hl.currentIndex];
+  const challenger = hl.chain[hl.currentIndex + 1];
   const active = hl.activeTeam === "A" ? teamA : teamB;
   const activeDot = hl.activeTeam === "A" ? "bg-blue-500" : "bg-red-500";
   const activeText = hl.activeTeam === "A" ? "text-blue-400" : "text-red-400";
   const guess = hl.lastGuess;
   const revealed = guess !== null;
-  const roundOver = revealed && !guess.correct;
+  const tight = revealed && isTightCall(reference, challenger);
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-950 text-neutral-100">
       {/* Header */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="flex items-center justify-between text-xs text-neutral-500 mb-2">
-          <button
-            onClick={() => setConfirmExit(true)}
-            className="active:text-neutral-300 transition-colors"
-          >
-            Esci
-          </button>
-          <span className="tabular-nums tracking-wide">
-            Round {Math.min(hl.roundsPlayed + 1, hl.totalRounds)} / {hl.totalRounds}
-          </span>
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            className="active:text-neutral-300 disabled:opacity-30 transition-colors"
-          >
-            Annulla
-          </button>
-        </div>
-        <div className="h-0.5 rounded-full bg-white/10 overflow-hidden">
-          <div
-            className="h-full bg-white/50 transition-all duration-300"
-            style={{ width: `${(hl.roundsPlayed / hl.totalRounds) * 100}%` }}
-          />
-        </div>
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between text-xs text-neutral-500">
+        <button
+          onClick={() => setConfirmExit(true)}
+          className="active:text-neutral-300 transition-colors"
+        >
+          Esci
+        </button>
+        <span className="tabular-nums tracking-wide text-neutral-400">
+          Catena <span className="text-neutral-100 font-semibold">{hl.streak}</span>
+        </span>
+        <button
+          onClick={onUndo}
+          disabled={!canUndo}
+          className="active:text-neutral-300 disabled:opacity-30 transition-colors"
+        >
+          Annulla
+        </button>
       </div>
 
       <div className="flex-1 flex flex-col px-4 pb-4 gap-3 max-w-md w-full mx-auto">
-        {/* Punteggi */}
+        {/* Risposte giuste per squadra */}
         <div className="flex items-center justify-center gap-4 text-center">
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
             <span className="text-xs text-neutral-400 max-w-[5.5rem] truncate">
               {teamA.name}
             </span>
-            <span className="text-lg font-semibold tabular-nums">{teamA.score}</span>
+            <span className="text-lg font-semibold tabular-nums">
+              {hl.correctByTeam.A}
+            </span>
           </div>
           <span className="text-xs text-neutral-600">·</span>
           <div className="flex items-center gap-1.5">
-            <span className="text-lg font-semibold tabular-nums">{teamB.score}</span>
+            <span className="text-lg font-semibold tabular-nums">
+              {hl.correctByTeam.B}
+            </span>
             <span className="text-xs text-neutral-400 max-w-[5.5rem] truncate">
               {teamB.name}
             </span>
@@ -143,22 +135,11 @@ export function HigherLowerScreen({
           </div>
         </div>
 
-        {/* Catena corrente */}
-        <div className="flex items-center justify-center gap-2 text-xs">
-          <span className="text-neutral-500">Catena</span>
-          <span className="font-semibold tabular-nums text-neutral-200">{hl.streak}</span>
-          {hl.bestStreak > 0 && (
-            <span className="text-neutral-600">· record {hl.bestStreak}</span>
-          )}
-        </div>
-
         {/* Turno */}
-        <div className="flex items-center justify-center gap-1.5 mt-1">
+        <div className="flex items-center justify-center gap-1.5">
           <span className={`w-1.5 h-1.5 rounded-full ${activeDot}`} />
           <span className={`text-sm font-medium ${activeText}`}>{active.name}</span>
-          <span className="text-xs text-neutral-500">
-            {revealed ? "" : "risponde"}
-          </span>
+          {!revealed && <span className="text-xs text-neutral-500">risponde</span>}
         </div>
 
         {/* Riferimento */}
@@ -167,12 +148,12 @@ export function HigherLowerScreen({
             Riferimento
           </p>
           <p className="text-base font-medium leading-snug text-neutral-50 text-balance">
-            {pair.left.label}
+            {reference.label}
           </p>
           <p className="text-2xl font-semibold tabular-nums text-white mt-2">
-            {formatValue(pair.left.value)}
+            {formatValue(reference.value, reference.unit)}
           </p>
-          <p className="text-[11px] text-neutral-500 mt-0.5">{pair.left.unit}</p>
+          <p className="text-[11px] text-neutral-500 mt-0.5">{reference.unit}</p>
         </div>
 
         {/* Sfidante */}
@@ -189,17 +170,22 @@ export function HigherLowerScreen({
             Più alto o più basso?
           </p>
           <p className="text-base font-medium leading-snug text-neutral-50 text-balance">
-            {pair.right.label}
+            {challenger.label}
           </p>
 
           {revealed ? (
             <>
               <p className="text-2xl font-semibold tabular-nums text-white mt-2">
-                {formatValue(pair.right.value)}
+                {formatValue(challenger.value, challenger.unit)}
               </p>
-              <p className="text-[11px] text-neutral-500 mt-0.5">{pair.right.unit}</p>
+              <p className="text-[11px] text-neutral-500 mt-0.5">{challenger.unit}</p>
+              {tight && (
+                <p className="text-[10px] uppercase tracking-[0.2em] text-amber-400/80 mt-2">
+                  Testa a testa
+                </p>
+              )}
               <p className="text-xs text-neutral-400 mt-3 leading-relaxed">
-                {pair.right.note}
+                {challenger.note}
               </p>
             </>
           ) : (
@@ -231,22 +217,15 @@ export function HigherLowerScreen({
               }`}
             >
               {guess.correct
-                ? "Giusto, si continua"
-                : `Sbagliato · punto a ${
-                    guess.team === "A" ? teamB.name : teamA.name
-                  }`}
+                ? "Giusto, la catena continua"
+                : `Sbagliato · vince ${guess.team === "A" ? teamB.name : teamA.name}`}
             </p>
             <button
-              onClick={() =>
-                dispatch({ type: roundOver ? "HL_NEXT_ROUND" : "HL_NEXT" })
-              }
-              className="w-full rounded-xl py-3.5 font-medium bg-white text-neutral-900 active:bg-neutral-200 transition-colors"
+              onClick={() => dispatch({ type: "HL_NEXT" })}
+              disabled={!guess.correct}
+              className="w-full rounded-xl py-3.5 font-medium bg-white text-neutral-900 active:bg-neutral-200 disabled:opacity-40 transition-colors"
             >
-              {roundOver
-                ? hl.roundsPlayed + 1 >= hl.totalRounds
-                  ? "Risultati finali"
-                  : "Round successivo"
-                : "Continua"}
+              Continua
             </button>
           </div>
         )}
@@ -259,7 +238,7 @@ export function HigherLowerScreen({
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 max-w-xs w-full text-center space-y-4">
             <p className="text-neutral-100 font-medium">Uscire dalla partita?</p>
-            <p className="text-xs text-neutral-500">I punteggi attuali andranno persi.</p>
+            <p className="text-xs text-neutral-500">La catena attuale andrà persa.</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setConfirmExit(false)}

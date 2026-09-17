@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   HL_CATEGORIES,
   buildHLChain,
-  countHLPairs,
+  countHLComparisons,
 } from "@/services/higherLowerService";
 import type { HLCategory } from "@/data/higherLowerItems";
 import type { Team } from "@/types/game.types";
@@ -14,25 +14,28 @@ interface HigherLowerSetupProps {
   dispatch: React.Dispatch<GameAction>;
 }
 
-const ROUND_OPTIONS = [3, 5, 7];
-
 export function HigherLowerSetup({ teamA, teamB, dispatch }: HigherLowerSetupProps) {
-  const [category, setCategory] = useState<HLCategory | "">("");
-  const [rounds, setRounds] = useState(5);
+  // Lista vuota = tutte le categorie.
+  const [selected, setSelected] = useState<HLCategory[]>([]);
 
-  const cat = category === "" ? null : category;
-  const available = countHLPairs(cat);
+  const available = useMemo(() => countHLComparisons(selected), [selected]);
+
+  const toggle = (c: HLCategory) => {
+    setSelected((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+    );
+  };
 
   const handleStart = () => {
-    const chain = buildHLChain(cat, available);
-    if (chain.length === 0) return;
-    dispatch({ type: "START_HL", payload: { chain, totalRounds: rounds } });
+    const chain = buildHLChain(selected);
+    if (chain.length < 2) return;
+    dispatch({ type: "START_HL", payload: { chain } });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-5 bg-neutral-950 text-neutral-100">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
+        <div className="text-center mb-7">
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-2">
             Più alto o più basso
           </p>
@@ -45,48 +48,49 @@ export function HigherLowerSetup({ teamA, teamB, dispatch }: HigherLowerSetupPro
 
         <div className="bg-neutral-900/60 border border-white/10 rounded-xl px-4 py-3 mb-6">
           <p className="text-xs text-neutral-400 leading-relaxed">
-            Le squadre si alternano sulla stessa catena. Chi sbaglia interrompe
-            la catena e regala il punto agli avversari.
+            Turni alternati sulla stessa catena. Chi indovina fa scorrere la
+            catena: l'elemento appena scoperto diventa il nuovo riferimento.
+            <span className="text-neutral-200"> Il primo che sbaglia perde.</span>
           </p>
         </div>
 
-        <label className="block text-[11px] uppercase tracking-wider text-neutral-500 mb-2">
-          Categoria
-        </label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as HLCategory | "")}
-          className="w-full px-4 py-3 bg-neutral-900 border border-white/10 rounded-xl text-neutral-100 text-sm focus:border-white/30 focus:outline-none transition-all appearance-none"
-        >
-          <option value="">Tutte le categorie</option>
-          {HL_CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-
-        <label className="block text-[11px] uppercase tracking-wider text-neutral-500 mb-2 mt-5">
-          Round da giocare
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {ROUND_OPTIONS.map((n) => (
+        <div className="flex items-baseline justify-between mb-2">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-500">
+            Categorie
+          </label>
+          {selected.length > 0 && (
             <button
-              key={n}
-              onClick={() => setRounds(n)}
-              className={`rounded-xl py-3 text-sm font-medium border transition-all active:scale-[0.97] ${
-                rounds === n
-                  ? "bg-white/10 border-white/25 text-white"
-                  : "bg-transparent border-white/10 text-neutral-400"
-              }`}
+              onClick={() => setSelected([])}
+              className="text-[11px] text-neutral-500 active:text-neutral-300"
             >
-              {n}
+              Tutte
             </button>
-          ))}
+          )}
         </div>
 
-        <p className="text-center text-xs text-neutral-600 mt-4">
-          {available} confronti disponibili
+        <div className="flex flex-wrap gap-2">
+          {HL_CATEGORIES.map((c) => {
+            const on = selected.includes(c);
+            return (
+              <button
+                key={c}
+                onClick={() => toggle(c)}
+                className={`px-3.5 py-2 rounded-full text-xs font-medium border transition-all active:scale-[0.96] ${
+                  on
+                    ? "bg-white text-neutral-900 border-white"
+                    : "bg-transparent border-white/15 text-neutral-400"
+                }`}
+              >
+                {c}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="text-center text-xs text-neutral-600 mt-5">
+          {selected.length === 0 ? "Tutte le categorie" : `${selected.length} selezionate`}
+          <span className="text-neutral-700"> · </span>
+          {available} confronti in catena
         </p>
 
         <button

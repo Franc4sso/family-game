@@ -24,9 +24,9 @@ export interface Team {
 // ─── Modalità di gioco ───
 import type { RuboQuestion } from "@/data/ruboQuestions";
 import type { MysteryCharacter } from "@/data/charactersQuestions";
-import type { HLPair } from "@/services/higherLowerService";
+import type { HLItem } from "@/data/higherLowerItems";
 
-export type GameMode = "master" | "no-master" | "rubo" | "mystery" | "higher-lower";
+export type GameMode = "master" | "no-master" | "rubo" | "mystery" | "higher-lower" | "guess-number";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 
@@ -48,26 +48,30 @@ export interface MysteryState {
 /**
  * Stato di "Più alto o più basso".
  *
- * Le due squadre si alternano sulla stessa catena: chi sbaglia interrompe
- * la catena e il round finisce. Il punto va a chi ha resistito.
+ * La catena è una sequenza di elementi: ogni elemento va confrontato col
+ * precedente. Quando la risposta è giusta l'elemento indovinato diventa il
+ * nuovo riferimento e ne entra un altro, così la catena scorre in avanti.
+ *
+ * Non ci sono round: si va a morte immediata. Le squadre si alternano e la
+ * prima che sbaglia perde la partita.
  */
 export interface HigherLowerState {
-  chain: HLPair[];
+  /** Elementi in sequenza: si confrontano a coppie consecutive. */
+  chain: HLItem[];
+  /** Posizione del riferimento attuale nella catena. */
   currentIndex: number;
   /** Squadra che deve rispondere al confronto corrente. */
   activeTeam: "A" | "B";
-  /** Squadra che inizia il round successivo: si alterna a ogni round. */
-  startingTeam: "A" | "B";
-  /** Risposta data, in attesa di passare al confronto successivo. */
+  /** Risposta data, in attesa di far scorrere la catena. */
   lastGuess: { team: "A" | "B"; correct: boolean } | null;
-  /** Risposte corrette consecutive nel round corrente. */
+  /** Confronti indovinati di fila dall'inizio della partita. */
   streak: number;
-  /** Catena più lunga raggiunta nella partita. */
-  bestStreak: number;
-  /** Round giocati finora. */
-  roundsPlayed: number;
-  /** Round totali previsti per la partita. */
-  totalRounds: number;
+  /** Risposte giuste date da ciascuna squadra. */
+  correctByTeam: { A: number; B: number };
+  /** Squadra che ha sbagliato e ha perso la partita. */
+  loser: "A" | "B" | null;
+  /** `true` quando la catena è esaurita senza errori. */
+  exhausted: boolean;
 }
 
 export interface GameState {
