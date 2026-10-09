@@ -1,8 +1,7 @@
-import React from "react";
-import { MainView } from "../main/MainView";
-import { ControlDrawer } from "../drawer/ControlDrawer";
-import { HamburgerButton } from "../shared/HamburgerButton";
-import { useDrawer } from "@/hooks/useDrawer";
+import React, { useState } from "react";
+import { BoardView } from "../master/BoardView";
+import { ControlsView } from "../master/ControlsView";
+import { RoundEndView } from "../master/RoundEndView";
 import type { GameState } from "@/types/game.types";
 import type { GameAction } from "@/types";
 
@@ -14,27 +13,27 @@ interface GameScreenProps {
 }
 
 export function GameScreen({ gameState, dispatch, onUndo, canUndo }: GameScreenProps) {
-  const { isOpen, open, close } = useDrawer();
+  // Un solo telefono: il master alterna il tabellone (per tutti) e i controlli
+  const [view, setView] = useState<"board" | "controls">("board");
+  const { currentRound } = gameState;
 
-  const handleRoundEnd = () => {
-    // Dopo modale vittoria, il currentRound diventa null → torna a RoundSetup
-    close();
-  };
+  if (!currentRound) return null;
 
-  return (
-    <div className="relative">
-      <MainView gameState={gameState} dispatch={dispatch} onRoundEnd={handleRoundEnd} />
+  if (currentRound.state === "ended") {
+    return <RoundEndView gameState={gameState} dispatch={dispatch} onUndo={onUndo} canUndo={canUndo} />;
+  }
 
-      <HamburgerButton onClick={open} />
-
-      <ControlDrawer
-        isOpen={isOpen}
-        onClose={close}
+  if (view === "controls") {
+    return (
+      <ControlsView
         gameState={gameState}
         dispatch={dispatch}
         onUndo={onUndo}
         canUndo={canUndo}
+        onShowBoard={() => setView("board")}
       />
-    </div>
-  );
+    );
+  }
+
+  return <BoardView gameState={gameState} dispatch={dispatch} onOpenControls={() => setView("controls")} />;
 }

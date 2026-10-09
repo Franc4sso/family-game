@@ -14,6 +14,8 @@ import { MysteryScreen } from "./game/MysteryScreen";
 import { HigherLowerSetup } from "./setup/HigherLowerSetup";
 import { HigherLowerScreen } from "./game/HigherLowerScreen";
 import { GuessNumberScreen } from "./game/GuessNumberScreen";
+import { Top100Screen } from "./top100/Top100Screen";
+import { AstaGame } from "./asta/AstaGame";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -30,9 +32,17 @@ export function App() {
     return <GuessNumberScreen dispatch={dispatch} />;
   }
 
+  // TOP 100 e Asta Folle hanno squadre proprie (da 2 a 6), quindi saltano il setup a due squadre
+  if (state.gameMode === "top100") {
+    return <Top100Screen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
+  }
+  if (state.gameMode === "asta") {
+    return <AstaGame gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
+  }
+
   // Setup squadre se non configurate
   if (!state.teamA.name || !state.teamB.name) {
-    return <TeamSetup dispatch={dispatch} />;
+    return <TeamSetup dispatch={dispatch} onBack={() => dispatch({ type: "CLEAR_MODE" })} />;
   }
 
   // ========== MODALITÀ RUBO ==========
@@ -74,7 +84,16 @@ export function App() {
 
   // Setup round se nessun round attivo (Family Feud)
   if (!state.currentRound) {
-    return <RoundSetup teamA={state.teamA} teamB={state.teamB} dispatch={dispatch} />;
+    return (
+      <RoundSetup
+        teamA={state.teamA}
+        teamB={state.teamB}
+        dispatch={dispatch}
+        playedCategories={state.roundHistory.map((r) => r.category)}
+        onBack={undo}
+        canGoBack={canUndo}
+      />
+    );
   }
 
   // ========== MODALITÀ CON MASTER ==========
@@ -87,6 +106,7 @@ export function App() {
           teamB={state.teamB}
           currentRound={state.currentRound}
           dispatch={dispatch}
+          onBack={undo}
         />
       );
     }

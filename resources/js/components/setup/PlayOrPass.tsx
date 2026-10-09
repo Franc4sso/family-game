@@ -1,6 +1,6 @@
 import React from "react";
-import { Button } from "../shared/Button";
-import type { Team, Round } from "@/types/game.types";
+import { RankBadge } from "../master/parts";
+import type { Team, Round, Answer } from "@/types/game.types";
 import type { GameAction } from "@/types";
 
 interface PlayOrPassProps {
@@ -17,95 +17,72 @@ export function PlayOrPass({ teamA, teamB, currentRound, dispatch }: PlayOrPassP
   const winningTeam = winner === "A" ? teamA : teamB;
   const losingTeam = winner === "A" ? teamB : teamA;
 
-  // Trova le due risposte rivelate
-  const revealedAnswers = currentRound.answers
-    .map((answer, index) => ({ answer, index }))
-    .filter(({ answer }) => answer.revealed);
-
-  const winnerAnswer = revealedAnswers.find(({ answer }) =>
-    currentRound.faceOffWinner === "A" ? answer.rank <= revealedAnswers[1]?.answer.rank : answer.rank < revealedAnswers[0]?.answer.rank
-  );
-  const loserAnswer = revealedAnswers.find(({ answer }) =>
-    currentRound.faceOffWinner === "A" ? answer.rank > revealedAnswers[0]?.answer.rank : answer.rank >= revealedAnswers[0]?.answer.rank
-  );
+  // Le risposte del face-off sono le uniche rivelate: la più alta è del vincitore
+  const [best, other] = currentRound.answers
+    .filter((answer) => answer.revealed)
+    .sort((a, b) => a.rank - b.rank);
 
   return (
-    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-4 border-amber-400 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 max-w-lg w-full shadow-2xl my-4">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400 mb-5 sm:mb-6 text-center drop-shadow-lg text-balance">
-          🎉 {winningTeam.name.toUpperCase()} VINCE! 🎉
-        </h2>
-
-        <div className="space-y-3 mb-6">
-          {/* Risposta vincente */}
-          <div className="bg-gradient-to-r from-green-600 to-green-700 border-2 border-green-400 rounded-xl p-4 shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-amber-400 flex items-center justify-center">
-                <span className="text-2xl font-black text-black">
-                  {revealedAnswers[0]?.answer.rank < revealedAnswers[1]?.answer.rank
-                    ? revealedAnswers[0]?.answer.rank
-                    : revealedAnswers[1]?.answer.rank}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-green-100 uppercase tracking-wider mb-0.5">
-                  {winningTeam.name}
-                </p>
-                <p className="text-base md:text-lg font-bold text-white">
-                  {revealedAnswers[0]?.answer.rank < revealedAnswers[1]?.answer.rank
-                    ? revealedAnswers[0]?.answer.value
-                    : revealedAnswers[1]?.answer.value}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Risposta perdente */}
-          <div className="bg-gray-800/50 border-2 border-gray-600 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center">
-                <span className="text-2xl font-black text-gray-300">
-                  {revealedAnswers[0]?.answer.rank > revealedAnswers[1]?.answer.rank
-                    ? revealedAnswers[0]?.answer.rank
-                    : revealedAnswers[1]?.answer.rank}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">
-                  {losingTeam.name}
-                </p>
-                <p className="text-base md:text-lg font-bold text-gray-300">
-                  {revealedAnswers[0]?.answer.rank > revealedAnswers[1]?.answer.rank
-                    ? revealedAnswers[0]?.answer.value
-                    : revealedAnswers[1]?.answer.value}
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-[#05081A]/85 p-3 font-ui text-ff-text backdrop-blur-sm sm:items-center">
+      <div role="dialog" aria-modal="true" aria-labelledby="play-or-pass-title" className="flex w-full max-w-md flex-col gap-3.5 rounded-[26px] border border-ff-line bg-ff-bg p-5">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="flex h-[26px] items-center rounded-full bg-ff-gold px-3 text-[11px] font-extrabold tracking-[0.12em] text-ff-gold-ink">
+            FACE-OFF VINTO
+          </span>
+          <h2 id="play-or-pass-title" className="font-display text-[30px] uppercase leading-[1.05] text-ff-gold break-words">
+            {winningTeam.name}
+          </h2>
         </div>
 
-        <div className="bg-amber-500/10 border border-amber-400/30 rounded-xl p-4 mb-6">
-          <p className="text-center text-base md:text-lg text-white font-semibold">
-            <span className="text-amber-400">{winningTeam.name}</span>, volete <strong>giocare</strong> o <strong>passare</strong>?
-          </p>
+        <div className="flex flex-col gap-1.5">
+          <FaceOffAnswer answer={best} teamName={winningTeam.name} winner />
+          <FaceOffAnswer answer={other} teamName={losingTeam.name} />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="success"
-            size="lg"
+        <p className="text-center text-base font-bold">
+          <span className="text-ff-gold">{winningTeam.name}</span>, giocate o passate?
+        </p>
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
             onClick={() => dispatch({ type: "CHOOSE_PLAY" })}
+            className="h-[60px] rounded-[18px] bg-ff-gold text-[17px] font-extrabold text-ff-gold-ink active:scale-95"
           >
-            ▶️ Giocare
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
+            Giochiamo
+          </button>
+          <button
+            type="button"
             onClick={() => dispatch({ type: "CHOOSE_PASS" })}
+            className="h-[60px] rounded-[18px] border border-ff-line bg-ff-surface text-[17px] font-extrabold active:scale-95"
           >
-            ⏭️ Passare
-          </Button>
+            Passiamo
+          </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FaceOffAnswer({ answer, teamName, winner = false }: { answer?: Answer; teamName: string; winner?: boolean }) {
+  return (
+    <div
+      className={`flex min-h-[58px] items-center gap-3 rounded-[14px] py-2 pl-2 pr-3.5 ${
+        winner ? "bg-ff-text text-ff-bg" : "border border-ff-line-soft bg-ff-surface text-ff-muted"
+      }`}
+    >
+      {answer ? (
+        <RankBadge rank={answer.rank} className={winner ? "bg-ff-bg text-ff-gold" : "bg-ff-surface-2 text-ff-muted"} />
+      ) : (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-ff-surface-2 text-ff-muted">–</span>
+      )}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className={`truncate text-[11px] font-extrabold uppercase tracking-[0.1em] ${winner ? "text-ff-gold-ink-soft" : ""}`}>
+          {teamName}
+        </span>
+        <span className={`text-base font-extrabold leading-tight ${winner ? "" : "text-ff-text"}`}>
+          {answer ? answer.value : "Nessuna risposta sul tabellone"}
+        </span>
       </div>
     </div>
   );

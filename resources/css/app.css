@@ -39,6 +39,59 @@ body {
     --color-team-b: #ef4444;         /* red-500 */
     --color-active-glow: #fbbf24;    /* amber-400 */
 
+    /* Palette e font della UI del master (Family Feud) */
+    --font-display: 'Archivo Black', 'Arial Black', sans-serif;
+    --font-ui: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    --color-ff-bg: #0A0F24;
+    --color-ff-surface: #141A38;
+    --color-ff-surface-2: #1F2756;
+    --color-ff-line: #2A3366;
+    --color-ff-line-soft: #232B5A;
+    --color-ff-text: #F3F4FA;
+    --color-ff-muted: #AEB6DA;
+    --color-ff-gold: #F5B83D;
+    --color-ff-gold-soft: #FFD27A;
+    --color-ff-gold-ink: #1A1305;
+    --color-ff-gold-ink-soft: #5C4109;
+    --color-ff-team-a: #13234F;
+    --color-ff-team-a-text: #D6E4FF;
+    --color-ff-team-b: #24160F;
+    --color-ff-team-b-text: #FFD9C9;
+    --color-ff-orange: #FF7A45;
+    --color-ff-orange-ink: #2A0F02;
+    --color-ff-orange-ink-soft: #5A230A;
+    --color-ff-green: #2BB673;
+    --color-ff-green-ink: #062114;
+    --color-ff-green-bg: #0F2A1D;
+    --color-ff-green-line: #1F6B43;
+    --color-ff-green-text: #C9F2DB;
+    --color-ff-red: #E5484D;
+    --color-ff-red-bg: #2A1114;
+    --color-ff-red-line: #7A2A2D;
+    --color-ff-shown: #3A4268;
+
+    /* Asta Folle: casa d'aste pop */
+    --font-asta: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+    --font-asta-mono: 'Space Mono', ui-monospace, monospace;
+    --color-asta-bg: #15100D;
+    --color-asta-photo: #0D0907;
+    --color-asta-surface: #221A15;
+    --color-asta-line: #3A2E26;
+    --color-asta-line-strong: #5A4A3E;
+    --color-asta-cream: #F4EBDD;
+    --color-asta-cream-2: #EDE3D3;
+    --color-asta-ink: #1B1410;
+    --color-asta-ink-soft: #4A3A30;
+    --color-asta-ink-muted: #6B5848;
+    --color-asta-brown: #8A3A22;
+    --color-asta-muted: #B8A99A;
+    --color-asta-red: #E8411F;
+    --color-asta-red-soft: #FFD3C6;
+    --color-asta-red-ink: #FFF4EC;
+    --color-asta-mustard: #FFC233;
+    --color-asta-green: #3DDC97;
+    --color-asta-green-ink: #0E2A1D;
+
     /* Drawer */
     --drawer-width: 85vw;            /* 85% viewport width */
     --drawer-max-width: 400px;

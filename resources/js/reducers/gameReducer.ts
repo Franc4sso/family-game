@@ -5,6 +5,20 @@ import { matchAnswer, matchAnswerForFaceOff } from "@/services/matchingService";
 import { RUBO_POINTS } from "@/services/ruboService";
 import { cluePoints, MYSTERY_MAX_CLUES } from "@/services/mysteryService";
 import { isGuessCorrect } from "@/services/higherLowerService";
+import {
+  TOP100_TEAM_COLORS,
+  top100CurrentTeam,
+  top100Points,
+  top100TotalTurns,
+} from "@/services/top100Service";
+import {
+  ASTA_MIN_BID,
+  ASTA_START_CREDITS,
+  ASTA_TEAM_COLORS,
+  astaAuctionOver,
+  astaCanPass,
+  astaMaxBid,
+} from "@/services/astaService";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -22,6 +36,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         rubo: null,
         mystery: null,
         higherLower: null,
+        top100: null,
+        asta: null,
         teamA: { ...state.teamA, score: 0 },
         teamB: { ...state.teamB, score: 0 },
         currentRound: null,
@@ -225,6 +241,179 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    // ─────────────────── MODALITÀ ASTA FOLLE ───────────────────
+    case "ASTA_SETUP": {
+      const { teamNames, bonuses, lots } = action.payload;
+      return {
+        ...state,
+        gameMode: "asta",
+        asta: {
+          teams: teamNames.map((name, i) => ({
+            name: name.trim(),
+            color: ASTA_TEAM_COLORS[i % ASTA_TEAM_COLORS.length],
+            credits: ASTA_START_CREDITS,
+          })),
+          bonuses,
+          lots,
+          current: 0,
+          cluesShown: 0,
+          sales: [],
+          unsold: [],
+          phase: "auction",
+          revealIndex: 0,
+        },
+      };
+    }
+
+    case "ASTA_SHOW_CLUE": {
+      const a = state.asta;
+      if (!a || a.phase !== "auction") return state;
+      const max = a.lots[a.current]?.clues.length ?? 0;
+      return { ...state, asta: { ...a, cluesShown: Math.min(a.cluesShown + 1, max) } };
+    }
+
+    case "ASTA_SELL": {
+      const a = state.asta;
+      if (!a || a.phase !== "auction") return state;
+      const { team, price } = action.payload;
+      // Il prezzo deve rispettare base d'asta e tetto della squadra
+      if (price < ASTA_MIN_BID || price > astaMaxBid(a, team)) return state;
+      return {
+        ...state,
+        asta: {
+          ...a,
+          phase: "sold",
+          teams: a.teams.map((t, i) => (i === team ? { ...t, credits: t.credits - price } : t)),
+          sales: [...a.sales, { lot: a.current, team, price }],
+        },
+      };
+    }
+
+    case "ASTA_PASS": {
+      const a = state.asta;
+      if (!a || a.phase !== "auction" || !astaCanPass(a)) return state;
+      const next = { ...a, unsold: [...a.unsold, a.current], current: a.current + 1, cluesShown: 0 };
+      return { ...state, asta: astaAuctionOver(next) ? { ...next, phase: "reveal", revealIndex: 0 } : next };
+    }
+
+    case "ASTA_NEXT": {
+      const a = state.asta;
+      if (!a || a.phase !== "sold") return state;
+      const next = { ...a, current: a.current + 1, cluesShown: 0, phase: "auction" as const };
+      if (!astaAuctionOver(next)) return { ...state, asta: next };
+      // I lotti mai battuti finiscono tra gli invenduti del catalogo finale
+      const leftovers = a.lots.map((_, i) => i).filter((i) => i > a.current);
+      return {
+        ...state,
+        asta: { ...next, unsold: [...a.unsold, ...leftovers], phase: "reveal", revealIndex: 0 },
+      };
+    }
+
+    case "ASTA_REVEAL_NEXT": {
+      const a = state.asta;
+      if (!a || a.phase !== "reveal") return state;
+      const last = a.revealIndex >= a.sales.length - 1;
+      return { ...state, asta: last ? { ...a, phase: "final" } : { ...a, revealIndex: a.revealIndex + 1 } };
+    }
+
+    case "ASTA_RESET":
+      // Nuova asta: si torna alla preparazione restando in questa modalità
+      return { ...state, asta: null };
+
+    // ─────────────────── MODALITÀ TOP 100 ───────────────────
+    case "TOP100_SETUP": {
+      const { teamNames, scoring, roundsPerCategory } = action.payload;
+      return {
+        ...state,
+        gameMode: "top100",
+        top100: {
+          teams: teamNames.map((name, i) => ({
+            name: name.trim(),
+            color: TOP100_TEAM_COLORS[i % TOP100_TEAM_COLORS.length],
+            score: 0,
+          })),
+          scoring,
+          roundsPerCategory,
+          phase: "choose",
+          categoryId: null,
+          startTeam: 0,
+          answers: [],
+          playedCategoryIds: [],
+        },
+      };
+    }
+
+    case "TOP100_START_CATEGORY": {
+      const t = state.top100;
+      if (!t || t.phase !== "choose") return state;
+      return {
+        ...state,
+        top100: {
+          ...t,
+          phase: "playing",
+          categoryId: action.payload.categoryId,
+          // A ogni classifica apre una squadra diversa
+          startTeam: t.playedCategoryIds.length % t.teams.length,
+          answers: [],
+        },
+      };
+    }
+
+    case "TOP100_ANSWER": {
+      const t = state.top100;
+      if (!t || t.phase !== "playing") return state;
+
+      const team = top100CurrentTeam(t);
+      const { said, rank } = action.payload;
+      // Una voce già detta in questa classifica non vale di nuovo
+      if (rank !== null && t.answers.some((a) => a.rank === rank)) return state;
+
+      const points = top100Points(rank, t.scoring);
+      return {
+        ...state,
+        top100: {
+          ...t,
+          phase: "result",
+          teams: t.teams.map((tm, i) => (i === team ? { ...tm, score: tm.score + points } : tm)),
+          answers: [...t.answers, { team, said, rank, points }],
+        },
+      };
+    }
+
+    case "TOP100_SKIP": {
+      const t = state.top100;
+      if (!t || t.phase !== "playing") return state;
+      const answers = [...t.answers, { team: top100CurrentTeam(t), said: "", rank: null, points: 0, skipped: true }];
+      return {
+        ...state,
+        top100: { ...t, answers, phase: answers.length >= top100TotalTurns(t) ? "end" : "playing" },
+      };
+    }
+
+    case "TOP100_NEXT": {
+      const t = state.top100;
+      if (!t || t.phase !== "result") return state;
+      return {
+        ...state,
+        top100: { ...t, phase: t.answers.length >= top100TotalTurns(t) ? "end" : "playing" },
+      };
+    }
+
+    case "TOP100_NEXT_CATEGORY": {
+      const t = state.top100;
+      if (!t || t.phase !== "end" || !t.categoryId) return state;
+      return {
+        ...state,
+        top100: {
+          ...t,
+          phase: "choose",
+          playedCategoryIds: [...t.playedCategoryIds, t.categoryId],
+          categoryId: null,
+          answers: [],
+        },
+      };
+    }
+
     case "SET_TEAMS":
       return {
         ...state,
@@ -395,9 +584,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!state.currentRound) return state;
 
       const newAnswers = [...state.currentRound.answers];
+      // Anche dopo lo svelamento dello steal il master può indicare quale
+      // risposta ha dato la squadra: smette di contare come mancata.
       newAnswers[action.payload.answerIndex] = {
         ...newAnswers[action.payload.answerIndex],
         revealed: true,
+        revealedInSteal: false,
       };
 
       // Se siamo in steal phase, la squadra attiva (che sta rubando) vince
@@ -408,6 +600,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             ...state.currentRound,
             answers: newAnswers,
             state: "ended",
+            stealOutcome: "success",
+            stealAnswerIndex: action.payload.answerIndex,
           },
         };
       }
@@ -433,6 +627,52 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case "STEAL_START_REVEAL": {
+      if (!state.currentRound || state.currentRound.state !== "steal") return state;
+
+      // Da qui il master svela le risposte rimaste una alla volta dal
+      // tabellone: il round resta in steal finché non decide l'esito.
+      return {
+        ...state,
+        currentRound: { ...state.currentRound, stealRevealed: true },
+      };
+    }
+
+    case "STEAL_REVEAL_ANSWER": {
+      const round = state.currentRound;
+      if (!round || round.state !== "steal" || !round.stealRevealed) return state;
+
+      const target = round.answers[action.payload.answerIndex];
+      if (!target || target.revealed) return state;
+
+      const newAnswers = [...round.answers];
+      newAnswers[action.payload.answerIndex] = { ...target, revealed: true, revealedInSteal: true };
+
+      return {
+        ...state,
+        currentRound: { ...round, answers: newAnswers },
+      };
+    }
+
+    case "STEAL_RESOLVE": {
+      if (!state.currentRound || state.currentRound.state !== "steal") return state;
+
+      const stealingTeam = state.currentRound.activeTeam;
+      const winner = action.payload.success
+        ? stealingTeam
+        : stealingTeam === "A" ? "B" : "A";
+
+      return {
+        ...state,
+        currentRound: {
+          ...state.currentRound,
+          state: "ended",
+          activeTeam: winner,
+          stealOutcome: action.payload.success ? "success" : "fail",
+        },
+      };
+    }
+
     case "MARK_ANSWER_WRONG": {
       if (!state.currentRound) return state;
 
@@ -453,6 +693,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             answers: newAnswers,
             state: "ended",
             activeTeam: otherTeam, // Impostiamo il vincitore come activeTeam
+            stealOutcome: "fail",
           },
         };
       }
@@ -671,6 +912,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         rubo: null,
         mystery: null,
         higherLower: null,
+        top100: null,
+        asta: null,
         currentRound: null,
         roundHistory: [],
       };

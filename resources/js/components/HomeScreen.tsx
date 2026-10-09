@@ -123,6 +123,38 @@ export function HomeScreen({ dispatch }: HomeScreenProps) {
               <div className="text-4xl sm:text-5xl shrink-0">🔢</div>
             </div>
           </button>
+
+          {/* Modalità TOP 100 */}
+          <button
+            onClick={() => handleModeSelect("top100")}
+            className="group relative bg-[#0A0F24] hover:bg-[#141A38] text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300 ring-2 ring-[#F5B83D]"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-left flex-1 min-w-0">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 text-[#F5B83D]">TOP 100</h2>
+                <p className="text-[#C9CFEA] text-sm md:text-base">
+                  Da 2 a 6 squadre. Dai una classifica, loro nominano chi c'è dentro: più è in alto, più punti. Fuori dalla top, zero.
+                </p>
+              </div>
+              <div className="text-4xl sm:text-5xl shrink-0">🏆</div>
+            </div>
+          </button>
+
+          {/* Modalità Asta Folle */}
+          <button
+            onClick={() => handleModeSelect("asta")}
+            className="group relative bg-[#15100D] hover:bg-[#221A15] text-[#F4EBDD] rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300 ring-2 ring-[#E8411F]"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-left flex-1 min-w-0">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 text-[#E8411F]">Asta Folle</h2>
+                <p className="text-[#D9CCBD] text-sm md:text-base">
+                  Da 2 a 6 squadre, 30 crediti e 3 lotti a testa. Rilanciate a voce: i valori veri si scoprono solo alla fine.
+                </p>
+              </div>
+              <div className="text-4xl sm:text-5xl shrink-0">🔨</div>
+            </div>
+          </button>
         </div>
 
         <div className="mt-6 sm:mt-8 text-center text-gray-500 text-xs sm:text-sm">

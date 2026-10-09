@@ -4,6 +4,7 @@ export interface Answer {
   revealed: boolean;
   burned: boolean;
   aliases?: string[];    // Sinonimi per matching automatico (modalità no-master)
+  revealedInSteal?: boolean; // Svelata dal master durante lo steal, non indovinata
 }
 
 export interface Round {
@@ -14,6 +15,9 @@ export interface Round {
   state: "faceoff" | "choose" | "playing" | "steal" | "ended";
   faceOffWinner?: "A" | "B";
   passedToOpponent?: boolean; // true se il vincitore del face-off ha scelto di passare
+  stealRevealed?: boolean; // true se il master sta svelando le risposte prima del verdetto dello steal
+  stealOutcome?: "success" | "fail"; // come è finito lo steal, se c'è stato
+  stealAnswerIndex?: number; // risposta data dalla squadra che ha rubato
 }
 
 export interface Team {
@@ -26,7 +30,15 @@ import type { RuboQuestion } from "@/data/ruboQuestions";
 import type { MysteryCharacter } from "@/data/charactersQuestions";
 import type { HLItem } from "@/data/higherLowerItems";
 
-export type GameMode = "master" | "no-master" | "rubo" | "mystery" | "higher-lower" | "guess-number";
+export type GameMode =
+  | "master"
+  | "no-master"
+  | "rubo"
+  | "mystery"
+  | "higher-lower"
+  | "guess-number"
+  | "top100"
+  | "asta";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 
@@ -74,6 +86,81 @@ export interface HigherLowerState {
   exhausted: boolean;
 }
 
+// ─── TOP 100 ───
+
+export type Top100Scoring = "classic" | "expert";
+
+export interface Top100Team {
+  name: string;
+  color: string;
+  score: number;
+}
+
+export interface Top100Answer {
+  team: number;          // indice in teams
+  said: string;          // cosa ha detto la squadra (testo del master)
+  rank: number | null;   // posizione in classifica, null se fuori
+  points: number;
+  skipped?: boolean;
+}
+
+/**
+ * Stato di "TOP 100": più squadre, a turno nominano una voce della
+ * classifica e prendono punti in base alla posizione.
+ */
+export interface Top100State {
+  teams: Top100Team[];
+  scoring: Top100Scoring;
+  roundsPerCategory: number;
+  phase: "choose" | "playing" | "result" | "end";
+  categoryId: string | null;
+  /** Squadra che apre la classifica corrente: ruota a ogni classifica. */
+  startTeam: number;
+  answers: Top100Answer[];
+  playedCategoryIds: string[];
+}
+
+// ─── ASTA FOLLE ───
+
+export interface AstaLot {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  clues: string[];
+  value: number;         // euro, segreto fino alla rivelazione
+  image: string;         // url (catalogo) o data URL (foto del master)
+  custom?: boolean;      // aggiunto dal master
+}
+
+export interface AstaTeam {
+  name: string;
+  color: string;
+  credits: number;
+}
+
+export interface AstaSale {
+  lot: number;           // indice in lots
+  team: number;          // indice in teams
+  price: number;         // crediti pagati
+}
+
+/**
+ * Stato di "Asta Folle": le squadre rilanciano a voce, il master registra
+ * solo chi si aggiudica il lotto e a quanto.
+ */
+export interface AstaState {
+  teams: AstaTeam[];
+  bonuses: { affare: boolean; bidone: boolean };
+  lots: AstaLot[];
+  current: number;       // lotto all'asta
+  cluesShown: number;    // note del banditore già svelate per il lotto corrente
+  sales: AstaSale[];
+  unsold: number[];
+  phase: "auction" | "sold" | "reveal" | "final";
+  revealIndex: number;   // indice in sales durante la rivelazione
+}
+
 export interface GameState {
   gameMode: GameMode | null;
   teamA: Team;
@@ -81,6 +168,8 @@ export interface GameState {
   rubo: RuboState | null;
   mystery: MysteryState | null;
   higherLower: HigherLowerState | null;
+  top100: Top100State | null;
+  asta: AstaState | null;
   currentRound: Round | null;
   roundHistory: Round[];
 }
@@ -92,6 +181,8 @@ export const initialGameState: GameState = {
   rubo: null,
   mystery: null,
   higherLower: null,
+  top100: null,
+  asta: null,
   currentRound: null,
   roundHistory: [],
 };

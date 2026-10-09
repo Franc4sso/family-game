@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { Button } from "../shared/Button";
-import { Card } from "../shared/Card";
+import { BackButton, MasterScreen, IconArrowRight } from "../master/parts";
 import { validateTeamName, validateUniqueTeamNames } from "@/utils/validators";
+import { MAX_TEAM_NAME_LENGTH } from "@/utils/constants";
 import type { GameAction } from "@/types";
 
 interface TeamSetupProps {
   dispatch: React.Dispatch<GameAction>;
+  onBack: () => void;
 }
 
-export function TeamSetup({ dispatch }: TeamSetupProps) {
+export function TeamSetup({ dispatch, onBack }: TeamSetupProps) {
   const [nameA, setNameA] = useState("");
   const [nameB, setNameB] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,53 +30,91 @@ export function TeamSetup({ dispatch }: TeamSetupProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900">
-      <Card className="max-w-md w-full">
-        <div className="text-center mb-6">
-          <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 mb-2">
-            FAMILY GAME
-          </h2>
-          <p className="text-gray-400 text-sm uppercase tracking-wider">Configura le squadre</p>
+    <MasterScreen>
+      <BackButton onClick={onBack} />
+      <div className="flex flex-col items-center gap-2 pt-4 text-center">
+        <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ff-muted">Nuova partita</span>
+        <h1 className="font-display text-[40px] leading-none">FAMILY FEUD</h1>
+        <p className="text-sm font-semibold text-ff-muted">Come si chiamano le due squadre?</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-3 pt-4">
+        <TeamField
+          id="team-a"
+          label="Squadra A"
+          value={nameA}
+          onChange={setNameA}
+          placeholder="es. Famiglia Rossi"
+          className="bg-ff-team-a ring-[#2A3D78] focus-within:ring-ff-gold"
+          labelColor="text-[#A9C4FF]"
+        />
+
+        <div className="flex items-center gap-2.5 text-xs font-extrabold tracking-[0.14em] text-ff-muted" aria-hidden>
+          <span className="h-px flex-1 bg-ff-line-soft" />
+          <span>CONTRO</span>
+          <span className="h-px flex-1 bg-ff-line-soft" />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">
-              Squadra A
-            </label>
-            <input
-              type="text"
-              value={nameA}
-              onChange={(e) => setNameA(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-800 border-2 border-blue-500/50 rounded-xl text-white text-base focus:border-blue-400 focus:outline-none transition-all"
-              placeholder="es. Famiglia Rossi"
-            />
-          </div>
+        <TeamField
+          id="team-b"
+          label="Squadra B"
+          value={nameB}
+          onChange={setNameB}
+          placeholder="es. Famiglia Bianchi"
+          className="bg-ff-team-b ring-[#4A2C22] focus-within:ring-ff-gold"
+          labelColor="text-[#FFB08C]"
+        />
 
-          <div>
-            <label className="block text-xs font-bold text-red-400 uppercase tracking-wider mb-2">
-              Squadra B
-            </label>
-            <input
-              type="text"
-              value={nameB}
-              onChange={(e) => setNameB(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-800 border-2 border-red-500/50 rounded-xl text-white text-base focus:border-red-400 focus:outline-none transition-all"
-              placeholder="es. Famiglia Bianchi"
-            />
-          </div>
+        {error && (
+          <p role="alert" className="rounded-[14px] border border-ff-red-line bg-ff-red-bg px-4 py-3 text-center text-sm font-bold text-[#FFB0B2]">
+            {error}
+          </p>
+        )}
 
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-              <p className="text-red-400 text-sm text-center font-medium">{error}</p>
-            </div>
-          )}
+        <button
+          type="submit"
+          className="mt-auto flex h-[60px] items-center justify-center gap-2.5 rounded-[18px] bg-ff-gold text-[17px] font-extrabold text-ff-gold-ink active:scale-[0.98]"
+        >
+          Inizia la partita
+          <IconArrowRight />
+        </button>
+      </form>
+    </MasterScreen>
+  );
+}
 
-          <Button type="submit" variant="primary" size="lg" fullWidth>
-            ▶️ Inizia Gioco
-          </Button>
-        </form>
-      </Card>
+function TeamField({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+  className,
+  labelColor,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  className: string;
+  labelColor: string;
+}) {
+  return (
+    <div className={`flex flex-col gap-1.5 rounded-[18px] px-4 py-3.5 ring-2 transition-shadow ${className}`}>
+      <label htmlFor={id} className={`text-[11px] font-extrabold uppercase tracking-[0.12em] ${labelColor}`}>
+        {label}
+      </label>
+      <input
+        id={id}
+        type="text"
+        value={value}
+        maxLength={MAX_TEAM_NAME_LENGTH}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoComplete="off"
+        className="w-full bg-transparent text-xl font-extrabold text-ff-text placeholder:font-semibold placeholder:text-ff-muted/60 focus:outline-none"
+      />
     </div>
   );
 }
