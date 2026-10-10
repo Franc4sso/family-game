@@ -1,7 +1,8 @@
 import React from "react";
 import type { GameState, Team } from "@/types/game.types";
 import type { GameAction } from "@/types/actions.types";
-import { IconArrowRight, IconUndo, MasterScreen, RankBadge, SectionLabel } from "./parts";
+import { IconArrowRight, IconUndo } from "./parts";
+import { FeudScreen, RankOval, type Side } from "../feud/parts";
 
 interface RoundEndViewProps {
   gameState: GameState;
@@ -10,7 +11,7 @@ interface RoundEndViewProps {
   canUndo: boolean;
 }
 
-/** Riepilogo del round: il punto viene assegnato con "Prossimo round". */
+/** Riepilogo del round, tutto nel colore di chi ha vinto: il punto viene assegnato con "Prossimo round". */
 export function RoundEndView({ gameState, dispatch, onUndo, canUndo }: RoundEndViewProps) {
   const { teamA, teamB, currentRound: round, roundHistory } = gameState;
   if (!round) return null;
@@ -18,65 +19,74 @@ export function RoundEndView({ gameState, dispatch, onUndo, canUndo }: RoundEndV
   const winner = round.activeTeam;
   const winnerName = winner === "A" ? teamA.name : teamB.name;
   const stealAnswer = round.stealAnswerIndex !== undefined ? round.answers[round.stealAnswerIndex] : undefined;
+  const isA = winner === "A";
 
   // Le svelate durante lo steal restano comunque non indovinate
   const missed = round.answers.filter((a) => (!a.revealed || a.revealedInSteal) && !a.burned);
 
-  const badge =
+  const context =
     round.stealOutcome === "success"
-      ? { label: "STEAL RIUSCITO", className: "bg-ff-orange text-ff-orange-ink" }
+      ? "Il furto è riuscito"
       : round.stealOutcome === "fail"
-        ? { label: "STEAL FALLITO", className: "bg-ff-red text-white" }
-        : { label: `ROUND ${roundHistory.length + 1} CONCLUSO`, className: "bg-ff-surface-2 text-[#C9CFEA]" };
-
+        ? "Il furto non è riuscito"
+        : "Tabellone chiuso";
   const headline = round.stealOutcome === "success" ? "ruba il round" : "vince il round";
 
+  const ink = isA ? "text-feud-ink" : "text-feud-coral-ink";
+  const inkSoft = isA ? "text-feud-ink-soft" : "text-feud-coral-ink-soft";
+  const dark = isA ? "bg-feud-ink" : "bg-feud-coral-ink";
+  const accentText = isA ? "text-feud-yellow" : "text-feud-coral";
+  const accentBg = isA ? "bg-feud-yellow text-feud-ink" : "bg-feud-coral text-feud-coral-ink";
+  const border = isA ? "border-feud-ink" : "border-feud-coral-ink";
+
   return (
-    <MasterScreen>
-      <div className="flex flex-col items-center gap-2.5 pt-6 text-center">
-        <span className={`flex h-[26px] items-center rounded-full px-3 text-[11px] font-extrabold tracking-[0.12em] ${badge.className}`}>
-          {badge.label}
-        </span>
-        <h2 className="font-display text-[40px] uppercase leading-[1.02] text-ff-gold break-words">
-          {winnerName}
-          <br />
-          {headline}
-        </h2>
-        {stealAnswer && (
-          <span className="text-sm font-bold text-[#C9CFEA]">
-            Hanno detto “{stealAnswer.value}” · n. {stealAnswer.rank}
-          </span>
-        )}
+    <FeudScreen tone={isA ? "yellow" : "coral"}>
+      <div className={`flex h-11 items-center justify-between text-sm font-extrabold ${inkSoft}`}>
+        <span>Fine del round {roundHistory.length + 1}</span>
+        <span>{context}</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5">
-        <FinalScore side="A" team={teamA} won={winner === "A"} />
-        <FinalScore side="B" team={teamB} won={winner === "B"} />
+      <section className={`flex flex-col ${ink}`}>
+        <span className="font-feud text-[200px] leading-[0.78] font-black tracking-[-0.02em]" aria-hidden>
+          +1
+        </span>
+        <h1 className="m-0 mt-2.5 font-feud text-[62px] leading-[0.88] font-black break-words uppercase">{winnerName}</h1>
+        <p className="m-0 mt-1.5 text-xl font-extrabold">{headline}</p>
+        {stealAnswer && (
+          <p className={`m-0 mt-1 text-sm font-bold ${inkSoft}`}>
+            Hanno detto “{stealAnswer.value}” · n. {stealAnswer.rank}
+          </p>
+        )}
+      </section>
+
+      <div className={`grid grid-cols-2 gap-2 ${ink}`}>
+        <FinalScore team={teamA} side="A" won={winner === "A"} dark={dark} accentText={accentText} border={border} />
+        <FinalScore team={teamB} side="B" won={winner === "B"} dark={dark} accentText={accentText} border={border} />
       </div>
 
       {missed.length > 0 ? (
-        <div className="flex flex-col gap-1.5">
-          <div className="pb-0.5">
-            <SectionLabel left="Quelle che nessuno ha detto" />
-          </div>
-          {missed.map((answer, i) => (
-            <div key={i} className="flex min-h-11 items-center gap-2.5 rounded-xl border border-dashed border-[#3A4370] bg-ff-surface px-1.5 py-1">
-              <RankBadge rank={answer.rank} className="h-8 w-8 bg-ff-surface-2 text-sm text-ff-gold" />
-              <span className="text-[15px] font-bold">{answer.value}</span>
-            </div>
-          ))}
-        </div>
+        <section className={`flex flex-col gap-2 rounded-[18px] px-4 py-3.5 ${dark}`}>
+          <h2 className={`m-0 text-sm font-extrabold ${accentText}`}>Quelle che nessuno ha detto</h2>
+          <ol className="grid grid-cols-2 gap-x-2.5 gap-y-1">
+            {missed.map((answer) => (
+              <li key={answer.rank} className="flex min-h-[34px] items-center gap-2.5">
+                <RankOval rank={answer.rank} className={`h-6 w-[30px] text-base ${accentBg}`} />
+                <span className="min-w-0 font-feud text-[22px] leading-none font-extrabold text-white uppercase">{answer.value}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
       ) : (
-        <div className="rounded-2xl border border-ff-green-line bg-ff-green-bg p-4 text-center text-base font-extrabold text-ff-green-text">
-          Tabellone completo: trovate tutte!
-        </div>
+        <section className={`rounded-[18px] px-4 py-4 text-center font-feud text-[28px] font-black uppercase ${dark} ${accentText}`}>
+          Tabellone completo!
+        </section>
       )}
 
       <div className="mt-auto flex flex-col gap-2">
         <button
           type="button"
           onClick={() => dispatch({ type: "END_ROUND", payload: { winningTeam: winner } })}
-          className="flex h-[60px] items-center justify-center gap-2.5 rounded-[18px] bg-ff-gold text-[17px] font-extrabold text-ff-gold-ink active:scale-[0.98]"
+          className={`feud-press flex h-[60px] items-center justify-center gap-2.5 rounded-[18px] text-lg font-extrabold ${dark} ${accentText}`}
         >
           Prossimo round
           <IconArrowRight />
@@ -85,29 +95,40 @@ export function RoundEndView({ gameState, dispatch, onUndo, canUndo }: RoundEndV
           type="button"
           disabled={!canUndo}
           onClick={onUndo}
-          className="flex h-[46px] items-center justify-center gap-2 rounded-[14px] border border-ff-line bg-ff-surface text-sm font-bold active:scale-95 disabled:opacity-40"
+          className={`feud-press flex h-[46px] items-center justify-center gap-2 rounded-[14px] border-2 text-sm font-bold disabled:opacity-40 ${border} ${ink}`}
         >
           <IconUndo />
           Annulla verdetto
         </button>
       </div>
-    </MasterScreen>
+    </FeudScreen>
   );
 }
 
-function FinalScore({ side, team, won }: { side: "A" | "B"; team: Team; won: boolean }) {
-  const base = side === "A" ? "bg-ff-team-a" : "bg-ff-team-b";
-  const nameColor = side === "A" ? "text-ff-team-a-text" : "text-ff-team-b-text";
-  const ring = won ? "ring-2 ring-ff-gold" : side === "A" ? "ring-1 ring-[#2A3D78]" : "ring-1 ring-[#4A2C22]";
-
+function FinalScore({
+  team,
+  won,
+  dark,
+  accentText,
+  border,
+}: {
+  team: Team;
+  side: Side;
+  won: boolean;
+  dark: string;
+  accentText: string;
+  border: string;
+}) {
+  // Il punto si somma davvero al passaggio al round successivo
+  const score = won ? team.score + 1 : team.score;
   return (
-    <div className={`flex flex-col items-center gap-1 rounded-[18px] p-3.5 ${base} ${ring}`}>
-      <span className={`max-w-full truncate text-sm font-extrabold ${nameColor}`}>{team.name}</span>
-      {/* Il punto si somma davvero al passaggio al round successivo */}
-      <span className="font-display text-[40px] leading-none">{won ? team.score + 1 : team.score}</span>
-      <span className={`text-xs font-extrabold ${won ? "text-ff-gold" : "text-ff-muted"}`}>
-        {won ? "+1 punto" : "invariato"}
-      </span>
+    <div
+      className={`flex items-center justify-between gap-2 rounded-[14px] px-3.5 py-2.5 ${
+        won ? `${dark} ${accentText}` : `border-2 ${border}`
+      }`}
+    >
+      <span className="truncate text-sm font-extrabold">{team.name}</span>
+      <span className="font-feud text-[34px] leading-none font-black">{score}</span>
     </div>
   );
 }

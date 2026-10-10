@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { AstaScreen, BackPill, IconUndo, LotPhoto, MonoLabel, Paddle, btnCream, btnGhost, btnRed } from "./parts";
-import { categoryLabel, lotLabel } from "./AstaBoard";
+import { AstaScreen, AstaWordmark, IconBack, IconUndo, LotPhoto, MonoLabel, Paddle, btnInk, btnOutline, btnRed } from "./parts";
+import { categoryLabel, lotLabel, lotNumber } from "./AstaBoard";
 import {
   ASTA_LOTS_PER_TEAM,
   astaAffare,
@@ -22,7 +22,7 @@ interface Props {
 
 const signed = (euro: number) => `${euro >= 0 ? "+" : "−"}${formatEuro(Math.abs(euro))}`;
 
-// ─── Aggiudicato ───
+// ─── Aggiudicato (sala) ───
 
 export function AstaSold({ state, dispatch, onUndo }: Props & { onUndo: () => void }) {
   const sale = state.sales[state.sales.length - 1];
@@ -33,64 +33,67 @@ export function AstaSold({ state, dispatch, onUndo }: Props & { onUndo: () => vo
   const over = astaAuctionOver({ ...state, current: state.current + 1 });
 
   return (
-    <AstaScreen padded={false}>
-      <div className="flex h-[60px] items-center justify-between px-3.5">
-        <span className="text-[22px] font-extrabold tracking-[-0.02em] text-asta-red">ASTA FOLLE</span>
-        <MonoLabel className="text-xs">{lotLabel(state, sale.lot)}</MonoLabel>
-      </div>
+    <AstaScreen tone="paper">
+      <header className="flex h-11 items-center justify-between">
+        <AstaWordmark />
+        <span className="font-asta-mono text-xs font-bold text-asta-ink-muted">{lotLabel(state, sale.lot)}</span>
+      </header>
 
-      <LotPhoto src={lot.image} alt={lot.name}>
-        <div
-          className="absolute left-1/2 top-1/2 flex h-[88px] w-[300px] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] flex-col items-center justify-center rounded-[10px] border-[5px] border-asta-red bg-asta-cream/85 text-asta-red animate-fade-in"
+      <LotPhoto src={lot.image} alt={lot.name} height="h-[min(34dvh,270px)]" className="rounded-2xl" dim>
+        <span
+          className="asta-slam absolute top-1/2 left-1/2 flex h-[88px] w-[290px] flex-col items-center justify-center rounded-[10px] border-[5px] border-asta-red bg-asta-paper/90 text-asta-red"
+          style={{ transform: "translate(-50%, -50%) rotate(-10deg)" }}
           aria-hidden
         >
-          <span className="text-[40px] font-extrabold leading-none tracking-[0.02em]">AGGIUDICATO</span>
-          <span className="font-asta-mono text-xs font-bold">LOTTO {String(sale.lot + 1).padStart(2, "0")}</span>
-        </div>
+          <span className="text-[42px] leading-[0.95] font-extrabold tracking-[0.01em]">AGGIUDICATO</span>
+          <span className="font-asta-mono text-xs font-bold">LOTTO {lotNumber(sale.lot)}</span>
+        </span>
       </LotPhoto>
 
-      <div className="flex flex-col gap-1.5 px-4 pt-5">
-        <h1 className="text-[22px] font-extrabold leading-tight">{lot.name}</h1>
-        <p className="text-[15px] font-semibold text-asta-muted">Batte il martello. Il lotto va a</p>
-      </div>
+      <section className="flex flex-col gap-1">
+        <h1 className="m-0 text-2xl leading-[1.08] font-extrabold tracking-[-0.02em]">{lot.name}</h1>
+        <p className="m-0 text-base font-semibold text-asta-ink-muted">Batte il martello. Il lotto va a</p>
+      </section>
 
-      <div className="mx-3 mt-3.5 flex h-[84px] items-center gap-3.5 rounded-full bg-asta-cream pl-3 pr-6 text-asta-ink">
-        <Paddle team={team} index={sale.team} size={60} />
-        <span className="flex min-w-0 flex-1 flex-col">
+      <div className="flex h-[88px] items-center gap-3.5 rounded-full bg-asta-ink pr-[22px] pl-2.5 text-asta-cream">
+        <Paddle team={team} index={sale.team} size={64} />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-[22px] font-extrabold">{team.name}</span>
-          <span className="font-asta-mono text-[11px] font-bold text-asta-ink-muted">
+          <span className="font-asta-mono text-[11px] font-bold text-asta-muted">
             RESTANO {team.credits} CR · {owned}/{ASTA_LOTS_PER_TEAM} LOTTI
           </span>
         </span>
-        <span className="text-[40px] font-extrabold tracking-[-0.03em] text-asta-red">
-          {sale.price}
-          <span className="font-asta-mono text-[13px] font-bold">CR</span>
+        <span className="flex items-baseline gap-[3px] text-asta-mustard">
+          <span className="text-[44px] leading-none font-extrabold tracking-[-0.04em]">{sale.price}</span>
+          <span className="font-asta-mono text-xs font-bold">CR</span>
         </span>
       </div>
 
-      <p className="mx-4 mt-3.5 font-asta-mono text-xs text-asta-muted">Quanto vale davvero? Si scopre alla fine.</p>
+      <p className="m-0 text-[15px] font-semibold text-asta-ink-muted">Quanto vale davvero? Si scopre alla fine.</p>
 
-      <div className="mt-auto flex flex-col gap-2 px-3.5 pb-4 pt-4">
+      <div className="mt-auto flex flex-col gap-2">
         <button type="button" onClick={() => dispatch({ type: "ASTA_NEXT" })} className={`${btnRed} h-[60px] text-lg`}>
-          {over ? "Chiudi l'asta e svela i valori" : "Prossimo lotto"}
+          {over ? "Chiudi l’asta e svela i valori" : "Prossimo lotto"}
         </button>
-        <button type="button" onClick={onUndo} className={`${btnGhost} h-[46px] text-sm`}>
+        <button type="button" onClick={onUndo} className={`${btnOutline} h-12 text-[15px]`}>
           <IconUndo />
-          Annulla aggiudicazione
+          Annulla l’aggiudicazione
         </button>
       </div>
     </AstaScreen>
   );
 }
 
-// ─── Il momento della verità ───
+// ─── Il momento della verità (banco, si mostra a tutti) ───
 
 export function AstaReveal({ state, dispatch }: Props) {
+  // Il cartellino si gira a mano, uno per lotto: prima si vede il prezzo, poi il valore
+  const [flippedAt, setFlippedAt] = useState<number | null>(null);
   const sale = state.sales[state.revealIndex];
   if (!sale) {
     return (
       <AstaScreen>
-        <p className="pt-10 text-center font-semibold text-asta-muted">Nessun lotto venduto.</p>
+        <p className="m-0 pt-10 text-center font-semibold text-asta-muted">Nessun lotto venduto.</p>
         <button type="button" onClick={() => dispatch({ type: "ASTA_REVEAL_NEXT" })} className={`${btnRed} h-14`}>
           Vai alla classifica
         </button>
@@ -102,62 +105,87 @@ export function AstaReveal({ state, dispatch }: Props) {
   const team = state.teams[sale.team];
   const perCredit = astaEuroPerCredit(state, sale);
   const last = state.revealIndex >= state.sales.length - 1;
+  const shown = flippedAt === state.revealIndex;
+  const flip = () => setFlippedAt(state.revealIndex);
 
   return (
-    <AstaScreen padded={false}>
-      <div className="flex flex-col gap-2 px-3.5 pb-2.5 pt-3.5">
-        <div className="flex items-baseline justify-between">
-          <h1 className="text-2xl font-extrabold tracking-[-0.02em]">Il momento della verità</h1>
+    <AstaScreen>
+      <header className="flex flex-col gap-2">
+        <span className="flex items-baseline justify-between gap-3">
+          <h1 className="m-0 text-2xl font-extrabold tracking-[-0.02em]">Il momento della verità</h1>
           <MonoLabel className="text-xs">
-            {String(state.revealIndex + 1).padStart(2, "0")}/{String(state.sales.length).padStart(2, "0")}
+            {lotNumber(state.revealIndex)}/{String(state.sales.length).padStart(2, "0")}
           </MonoLabel>
-        </div>
-        <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${state.sales.length}, minmax(0, 1fr))` }} aria-hidden>
+        </span>
+        <span className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${state.sales.length}, minmax(0, 1fr))` }} aria-hidden>
           {state.sales.map((_, i) => (
-            <span key={i} className={`h-[5px] rounded-full ${i <= state.revealIndex ? "bg-asta-mustard" : "bg-asta-line"}`} />
+            <span key={i} className={`h-[5px] rounded-full ${i < state.revealIndex || (i === state.revealIndex && shown) ? "bg-asta-mustard" : "bg-asta-line"}`} />
           ))}
-        </div>
+        </span>
+      </header>
+
+      <LotPhoto src={lot.image} alt={lot.name} height="h-[min(26dvh,200px)]" className="rounded-2xl" />
+
+      <div className="flex items-center gap-3">
+        <h2 className="m-0 flex-1 text-xl leading-[1.12] font-extrabold">{lot.name}</h2>
+        <Paddle team={team} index={sale.team} size={40} handle />
       </div>
 
-      <LotPhoto src={lot.image} alt={lot.name} height="h-[min(32vh,250px)]" />
-
-      <div className="flex items-center justify-between gap-2.5 px-4 pt-4">
-        <h2 className="text-[19px] font-extrabold leading-tight">{lot.name}</h2>
-        <Paddle team={team} index={sale.team} size={40} />
-      </div>
-
-      <div key={state.revealIndex} className="flex flex-col items-center gap-3 px-4 pt-4">
-        <div className="flex items-center gap-2.5 self-start rounded-l-md rounded-r-[18px] border border-asta-line bg-asta-surface py-2 pl-3 pr-4">
-          <span className="h-2.5 w-2.5 rounded-full bg-asta-bg ring-2 ring-asta-line-strong" aria-hidden />
-          <span className="flex flex-col">
-            <span className="font-asta-mono text-[10px] font-bold text-asta-muted">PAGATO DA {team.name.toUpperCase()}</span>
-            <span className="text-[22px] font-extrabold">{formatCredits(sale.price)}</span>
-          </span>
-        </div>
-
-        <div className="flex w-full max-w-[320px] -rotate-3 items-center gap-4 rounded-l-lg rounded-r-[30px] bg-asta-cream py-4 pl-[18px] pr-5 text-asta-ink animate-fade-in">
-          <span className="h-[18px] w-[18px] shrink-0 rounded-full bg-asta-bg" aria-hidden />
-          <span className="flex flex-col">
-            <span className="font-asta-mono text-xs font-bold tracking-[0.12em] text-asta-brown">VALE DAVVERO</span>
-            <span className="text-[44px] font-extrabold leading-none tracking-[-0.03em]">{formatEuro(lot.value)}</span>
-          </span>
-        </div>
-
-        <span className="mt-1.5 flex h-10 items-center rounded-full border-2 border-asta-mustard px-[18px] text-base font-extrabold text-asta-mustard">
-          {formatEuro(perCredit)} per ogni credito speso
+      <div className="flex items-center gap-2.5 self-start rounded-l-md rounded-r-[20px] bg-asta-surface py-2 pr-[18px] pl-3 shadow-[inset_0_0_0_1.5px_var(--color-asta-line)]">
+        <span className="h-2.5 w-2.5 rounded-full bg-asta-bg ring-2 ring-asta-line-strong" aria-hidden />
+        <span className="flex flex-col">
+          <span className="font-asta-mono text-[10px] font-bold text-asta-muted">PAGATO DA {team.name.toUpperCase()}</span>
+          <span className="text-[22px] font-extrabold">{formatCredits(sale.price)}</span>
         </span>
       </div>
 
-      <div className="mt-auto px-3.5 pb-4 pt-4">
-        <button type="button" onClick={() => dispatch({ type: "ASTA_REVEAL_NEXT" })} className={`${btnRed} h-[60px] w-full text-lg`}>
-          {last ? "Vai alla classifica" : "Svela il prossimo lotto"}
-        </button>
+      <button
+        type="button"
+        onClick={flip}
+        disabled={shown}
+        aria-label={shown ? `Vale davvero ${formatEuro(lot.value)}` : "Gira il cartellino e svela il valore"}
+        className="asta-tag asta-press block h-[104px] w-full max-w-[330px] -rotate-3 text-left"
+      >
+        <span className="asta-tag-inner block" data-flipped={shown} aria-live="polite">
+          <span className="asta-tag-face flex items-center gap-4 rounded-l-lg rounded-r-[34px] bg-asta-red pr-[22px] pl-[18px] text-asta-red-ink" aria-hidden={shown}>
+            <span className="h-[18px] w-[18px] shrink-0 rounded-full bg-asta-bg" />
+            <span className="flex flex-col">
+              <span className="font-asta-mono text-[11px] font-bold text-asta-red-soft">VALE DAVVERO…</span>
+              <span className="text-[26px] font-extrabold">Gira il cartellino</span>
+            </span>
+          </span>
+          <span className="asta-tag-face asta-tag-back flex items-center gap-4 rounded-l-lg rounded-r-[34px] bg-asta-cream pr-[22px] pl-[18px] text-asta-ink" aria-hidden={!shown}>
+            <span className="h-[18px] w-[18px] shrink-0 rounded-full bg-asta-bg" />
+            <span className="flex flex-col">
+              <span className="font-asta-mono text-[11px] font-bold text-asta-brown">VALE DAVVERO</span>
+              <span className="text-[44px] leading-none font-extrabold tracking-[-0.04em]">{formatEuro(lot.value)}</span>
+            </span>
+          </span>
+        </span>
+      </button>
+
+      {shown && (
+        <span key={state.revealIndex} className="asta-pop flex h-10 items-center self-start rounded-full border-2 border-asta-mustard px-4 text-base font-extrabold text-asta-mustard">
+          {formatEuro(perCredit)} per ogni credito speso
+        </span>
+      )}
+
+      <div className="mt-auto pt-1">
+        {shown ? (
+          <button type="button" onClick={() => dispatch({ type: "ASTA_REVEAL_NEXT" })} className={`${btnRed} h-[60px] w-full text-lg`}>
+            {last ? "Vai alla classifica" : "Svela il prossimo lotto"}
+          </button>
+        ) : (
+          <button type="button" onClick={flip} className="asta-press h-[60px] w-full rounded-full bg-asta-cream text-lg font-extrabold text-asta-ink">
+            Gira il cartellino
+          </button>
+        )}
       </div>
     </AstaScreen>
   );
 }
 
-// ─── Classifica finale ───
+// ─── Classifica finale (sala) ───
 
 export function AstaFinal({ state, dispatch }: Props) {
   const [catalog, setCatalog] = useState(false);
@@ -168,74 +196,76 @@ export function AstaFinal({ state, dispatch }: Props) {
   const bidone = astaBidone(state);
   const winner = results[0];
   const tie = results.length > 1 && results[1].total === winner.total;
+  // Podio: secondo, primo, terzo
   const podium = [results[1], results[0], results[2]].filter(Boolean);
-  const heights: Record<number, string> = { 0: "h-[136px]", 1: "h-[100px]", 2: "h-[76px]" };
+  const stand: Record<number, string> = { 0: "h-[136px] bg-asta-ink text-asta-cream", 1: "h-24 bg-asta-paper-track", 2: "h-[72px] bg-asta-paper-track" };
 
   return (
-    <AstaScreen>
-      <div className="flex flex-col gap-0.5">
-        <MonoLabel>ASTA CHIUSA · {state.sales.length} LOTTI VENDUTI</MonoLabel>
-        <h1 className="text-[40px] font-extrabold leading-[0.95] tracking-[-0.03em] text-asta-mustard break-words">
-          {tie ? "Pareggio!" : `Vince ${state.teams[winner.team].name}`}
+    <AstaScreen tone="paper">
+      <section className="flex flex-col gap-1">
+        <span className="font-asta-mono text-xs font-bold text-asta-brown">
+          ASTA CHIUSA · {state.sales.length} {state.sales.length === 1 ? "LOTTO VENDUTO" : "LOTTI VENDUTI"}
+        </span>
+        <h1 className="m-0 text-5xl leading-[0.92] font-extrabold tracking-[-0.04em] break-words text-asta-red">
+          {tie ? (
+            "Pareggio!"
+          ) : (
+            <>
+              Vince
+              <br />
+              {state.teams[winner.team].name}
+            </>
+          )}
         </h1>
-      </div>
+      </section>
 
-      <div className="grid items-end gap-2" style={{ gridTemplateColumns: `repeat(${podium.length}, minmax(0, 1fr))` }}>
+      <div className="grid items-end gap-2 pt-1" style={{ gridTemplateColumns: `repeat(${podium.length}, minmax(0, 1fr))` }}>
         {podium.map((r) => {
           const place = results.indexOf(r);
           const team = state.teams[r.team];
+          const first = place === 0;
           return (
-            <div key={r.team} className="flex flex-col items-center gap-1.5">
-              <Paddle team={team} index={r.team} size={place === 0 ? 56 : 46} />
+            <div key={r.team} className="flex min-w-0 flex-col items-center gap-1">
+              <Paddle team={team} index={r.team} size={first ? 58 : 46} handle ring={first} />
               <span className="max-w-full truncate text-sm font-extrabold">{team.name}</span>
-              <div
-                className={`flex w-full flex-col items-center justify-center gap-0.5 rounded-b rounded-t-[14px] ${heights[place]} ${
-                  place === 0 ? "bg-asta-cream text-asta-ink" : "border border-asta-line bg-asta-surface"
-                }`}
-              >
-                <span className={`font-extrabold ${place === 0 ? "text-4xl" : "text-[26px]"}`}>{place + 1}</span>
-                <span className={`font-asta-mono text-xs font-bold ${place === 0 ? "text-asta-brown" : "text-asta-mustard"}`}>
-                  {formatEuro(r.total)}
-                </span>
-              </div>
+              <span className={`flex w-full flex-col items-center justify-center gap-0.5 rounded-t-[14px] rounded-b ${stand[place]}`}>
+                <span className={`leading-none font-extrabold ${first ? "text-[40px]" : place === 1 ? "text-[28px]" : "text-2xl"}`}>{place + 1}</span>
+                <span className={`font-asta-mono font-bold ${first ? "text-[13px] text-asta-mustard" : "text-xs text-asta-ink-soft"}`}>{formatEuro(r.total)}</span>
+              </span>
             </div>
           );
         })}
       </div>
 
       {results.slice(3).map((r, i) => (
-        <div key={r.team} className="flex h-[50px] items-center gap-2.5 rounded-full border border-asta-line bg-asta-surface pl-1.5 pr-4">
+        <div key={r.team} className="flex h-[50px] items-center gap-3 rounded-full bg-asta-paper-2 pr-4 pl-1.5 shadow-[inset_0_0_0_1.5px_var(--color-asta-paper-line)]">
           <Paddle team={state.teams[r.team]} index={r.team} size={38} />
           <span className="flex-1 truncate text-[15px] font-extrabold">
             {i + 4}° {state.teams[r.team].name}
           </span>
-          <span className="font-asta-mono text-[13px] font-bold text-asta-mustard">{formatEuro(r.total)}</span>
+          <span className="font-asta-mono text-[13px] font-bold text-asta-ink-soft">{formatEuro(r.total)}</span>
         </div>
       ))}
 
       {(affare || bidone) && (
         <div className="grid grid-cols-2 gap-2.5 px-0.5 pt-1">
           {affare && (
-            <div className="flex -rotate-2 flex-col gap-1 rounded-2xl bg-asta-green p-3 text-asta-green-ink">
+            <div className="flex -rotate-2 flex-col gap-[3px] rounded-2xl bg-asta-green p-3 text-asta-green-ink">
               <span className="font-asta-mono text-[10px] font-bold">AFFARE DEL SECOLO</span>
-              <span className="text-[17px] font-extrabold leading-tight">
-                {state.teams[affare.team].name} {signed(affare.amount)}
-              </span>
-              <span className="text-xs font-semibold leading-snug">
-                {state.lots[affare.sale.lot].name}: {formatCredits(affare.sale.price)}, vale{" "}
-                {formatEuro(state.lots[affare.sale.lot].value)}
+              <span className="truncate text-base leading-tight font-extrabold">{state.teams[affare.team].name}</span>
+              <span className="text-[22px] leading-none font-extrabold whitespace-nowrap">{signed(affare.amount)}</span>
+              <span className="text-xs leading-snug font-semibold">
+                {state.lots[affare.sale.lot].name}: {formatCredits(affare.sale.price)}, vale {formatEuro(state.lots[affare.sale.lot].value)}
               </span>
             </div>
           )}
           {bidone && (
-            <div className="flex rotate-2 flex-col gap-1 rounded-2xl bg-asta-red p-3 text-asta-red-ink">
+            <div className="col-start-2 flex rotate-2 flex-col gap-[3px] rounded-2xl bg-asta-red p-3 text-asta-red-ink">
               <span className="font-asta-mono text-[10px] font-bold">IL BIDONE</span>
-              <span className="text-[17px] font-extrabold leading-tight">
-                {state.teams[bidone.team].name} {signed(bidone.amount)}
-              </span>
-              <span className="text-xs font-semibold leading-snug">
-                {state.lots[bidone.sale.lot].name}: {formatCredits(bidone.sale.price)}, vale{" "}
-                {formatEuro(state.lots[bidone.sale.lot].value)}
+              <span className="truncate text-base leading-tight font-extrabold">{state.teams[bidone.team].name}</span>
+              <span className="text-[22px] leading-none font-extrabold whitespace-nowrap">{signed(bidone.amount)}</span>
+              <span className="text-xs leading-snug font-semibold">
+                {state.lots[bidone.sale.lot].name}: {formatCredits(bidone.sale.price)}, vale {formatEuro(state.lots[bidone.sale.lot].value)}
               </span>
             </div>
           )}
@@ -243,10 +273,10 @@ export function AstaFinal({ state, dispatch }: Props) {
       )}
 
       <div className="mt-auto flex flex-col gap-2 pt-2">
-        <button type="button" onClick={() => setCatalog(true)} className={`${btnCream} h-[58px] text-lg`}>
-          Sfoglia il catalogo venduto
+        <button type="button" onClick={() => setCatalog(true)} className={`${btnInk} h-[58px] text-[17px]`}>
+          Chi ha comprato cosa
         </button>
-        <button type="button" onClick={() => dispatch({ type: "ASTA_RESET" })} className={`${btnRed} h-[50px] text-base`}>
+        <button type="button" onClick={() => dispatch({ type: "ASTA_RESET" })} className={`${btnRed} h-[52px] text-base`}>
           Nuova asta
         </button>
       </div>
@@ -254,7 +284,7 @@ export function AstaFinal({ state, dispatch }: Props) {
   );
 }
 
-// ─── Catalogo venduto ───
+// ─── Catalogo venduto (sala) ───
 
 function AstaCatalog({ state, onBack }: { state: AstaState; onBack: () => void }) {
   const results = astaResults(state);
@@ -265,82 +295,87 @@ function AstaCatalog({ state, onBack }: { state: AstaState; onBack: () => void }
   const t = state.teams[team];
 
   return (
-    <AstaScreen>
-      <div className="flex items-center gap-2.5">
-        <BackPill onClick={onBack} label="Classifica" />
-      </div>
-      <div className="flex flex-col">
-        <MonoLabel>CATALOGO VENDUTO</MonoLabel>
-        <h1 className="text-[26px] font-extrabold leading-tight">Chi ha comprato cosa</h1>
-      </div>
+    <AstaScreen tone="paper">
+      <button
+        type="button"
+        onClick={onBack}
+        className="asta-press flex h-11 items-center gap-1.5 self-start rounded-full border-2 border-asta-ink pr-4 pl-2.5 text-sm font-extrabold"
+      >
+        <IconBack />
+        Classifica
+      </button>
+      <section className="flex flex-col gap-0.5">
+        <span className="font-asta-mono text-[11px] font-bold text-asta-brown">CATALOGO VENDUTO</span>
+        <h1 className="m-0 text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Chi ha comprato cosa</h1>
+      </section>
 
-      <div className="-mx-3.5 flex gap-1.5 overflow-x-auto px-3.5 pb-1 [scrollbar-width:none]" role="group" aria-label="Squadra">
+      <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="group" aria-label="Squadra">
         {state.teams.map((tm, i) => (
           <button
             key={tm.name}
             type="button"
             aria-pressed={team === i}
             onClick={() => setTeam(i)}
-            className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] ${
-              team === i ? "bg-asta-cream font-extrabold text-asta-ink" : "border border-asta-line bg-asta-surface font-bold text-asta-muted"
+            className={`asta-press flex h-10 shrink-0 items-center gap-2 rounded-full px-3.5 text-sm transition-colors ${
+              team === i ? "bg-asta-ink font-extrabold text-asta-cream" : "font-bold text-asta-ink-soft shadow-[inset_0_0_0_1.5px_var(--color-asta-paper-line)]"
             }`}
           >
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: tm.color }} />
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: tm.color }} aria-hidden />
             {tm.name}
           </button>
         ))}
       </div>
 
-      <div className="flex h-[60px] items-center gap-3 rounded-full bg-asta-cream pl-2 pr-[18px] text-asta-ink">
-        <Paddle team={t} index={team} size={44} />
+      <div className="flex h-16 items-center gap-3 rounded-full bg-asta-ink pr-5 pl-2 text-asta-cream">
+        <Paddle team={t} index={team} size={46} />
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-[17px] font-extrabold">
             {t.name} · {place}° posto
           </span>
-          <span className="font-asta-mono text-[11px] font-bold text-asta-ink-muted">
+          <span className="font-asta-mono text-[11px] font-bold text-asta-muted">
             SPESI {result.spent} CR · RESTANO {t.credits}
             {result.bonus !== 0 ? ` · BONUS ${signed(result.bonus)}` : ""}
           </span>
         </span>
-        <span className="text-xl font-extrabold">{formatEuro(result.total)}</span>
+        <span className="text-xl font-extrabold text-asta-mustard">{formatEuro(result.total)}</span>
       </div>
 
-      <ul className="flex flex-col gap-2">
+      <ul className="m-0 flex list-none flex-col gap-2 p-0">
         {sales.map((sale) => {
           const lot = state.lots[sale.lot];
           return (
-            <li key={sale.lot} className="flex gap-2.5 rounded-[18px] border border-asta-line bg-asta-surface p-2">
+            <li key={sale.lot} className="flex gap-3 rounded-[18px] bg-asta-paper-2 p-2 shadow-[inset_0_0_0_1.5px_var(--color-asta-paper-line)]">
               <img src={lot.image} alt="" className="h-[78px] w-[78px] shrink-0 rounded-xl bg-asta-photo object-contain" />
-              <span className="flex min-w-0 flex-1 flex-col gap-1">
-                <MonoLabel className="text-[10px]">
-                  LOTTO {String(sale.lot + 1).padStart(2, "0")} · {categoryLabel(lot.category).toUpperCase()}
-                </MonoLabel>
-                <span className="text-[15px] font-extrabold leading-tight">{lot.name}</span>
-                <span className="flex justify-between font-asta-mono text-xs text-asta-muted">
+              <span className="flex min-w-0 flex-1 flex-col gap-1 pr-1">
+                <span className="font-asta-mono text-[10px] font-bold text-asta-brown">
+                  LOTTO {lotNumber(sale.lot)} · {categoryLabel(lot.category).toUpperCase()}
+                </span>
+                <span className="text-[15px] leading-tight font-extrabold">{lot.name}</span>
+                <span className="flex justify-between font-asta-mono text-xs text-asta-ink-muted">
                   <span>pagato</span>
                   <span>{formatCredits(sale.price)}</span>
                 </span>
                 <span className="flex justify-between font-asta-mono text-xs font-bold">
                   <span>vale</span>
-                  <span className="text-asta-mustard">{formatEuro(lot.value)}</span>
+                  <span className="text-asta-red">{formatEuro(lot.value)}</span>
                 </span>
               </span>
             </li>
           );
         })}
-        {sales.length === 0 && <li className="text-center text-sm font-semibold text-asta-muted">Nessun lotto comprato.</li>}
+        {sales.length === 0 && <li className="text-center text-sm font-semibold text-asta-ink-muted">Nessun lotto comprato.</li>}
       </ul>
 
       {state.unsold.length > 0 && (
-        <div className="flex flex-col gap-1.5 border-t border-dashed border-asta-line pt-2.5">
-          <MonoLabel>RIMASTI INVENDUTI</MonoLabel>
+        <section className="flex flex-col gap-1.5 border-t-[1.5px] border-dashed border-asta-paper-dash pt-2.5">
+          <span className="font-asta-mono text-[11px] font-bold text-asta-brown">RIMASTI INVENDUTI</span>
           {state.unsold.map((i) => (
             <span key={i} className="flex justify-between gap-3 text-sm font-bold">
               <span className="min-w-0 truncate">{state.lots[i].name}</span>
-              <span className="shrink-0 font-asta-mono text-asta-mustard">{formatEuro(state.lots[i].value)}</span>
+              <span className="shrink-0 font-asta-mono">{formatEuro(state.lots[i].value)}</span>
             </span>
           ))}
-        </div>
+        </section>
       )}
     </AstaScreen>
   );

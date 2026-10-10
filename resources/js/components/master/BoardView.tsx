@@ -1,8 +1,9 @@
 import React from "react";
 import { MAX_LIVES } from "@/utils/constants";
-import type { GameState } from "@/types/game.types";
+import type { Answer, GameState } from "@/types/game.types";
 import type { GameAction } from "@/types/actions.types";
-import { IconEye, IconSliders, IconX, MasterScreen, RankBadge, isGuessed } from "./parts";
+import { IconEye, IconSliders, isGuessed } from "./parts";
+import { FeudScreen, FeudX, RankOval, TEAM, useFirstShow, useGrowthFlash, type Side } from "../feud/parts";
 
 interface BoardViewProps {
   gameState: GameState;
@@ -15,180 +16,271 @@ export function BoardView({ gameState, dispatch, onOpenControls }: BoardViewProp
   const { teamA, teamB, currentRound: round, roundHistory } = gameState;
   if (!round) return null;
 
+  const roundKey = `${roundHistory.length}:${round.category}`;
   const isSteal = round.state === "steal";
   const revealing = isSteal && !!round.stealRevealed;
   // Durante il face-off/scelta la squadra attiva non è ancora decisa
   const activeTeam = round.state === "playing" || isSteal ? round.activeTeam : null;
-  const stealingName = round.activeTeam === "A" ? teamA.name : teamB.name;
+  const strikes = MAX_LIVES - round.livesRemaining;
 
-  const notGuessed = round.answers.filter((a) => !isGuessed(a)).length;
-  const shownInSteal = round.answers.filter((a) => a.revealedInSteal).length;
+  if (isSteal) {
+    return (
+      <StealBoard
+        gameState={gameState}
+        roundKey={roundKey}
+        revealing={revealing}
+        dispatch={dispatch}
+        onOpenControls={onOpenControls}
+      />
+    );
+  }
 
   return (
-    <MasterScreen>
+    <FeudScreen>
       <div className="flex h-11 items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span className="font-display text-[19px]">FAMILY FEUD</span>
-          <span className="flex h-6 items-center rounded-full bg-ff-surface-2 px-2.5 text-xs font-extrabold text-[#C9CFEA]">
-            Round {roundHistory.length + 1}
-          </span>
+        <div className="flex items-baseline gap-2.5">
+          <span className="font-feud text-[26px] leading-none font-black text-feud-yellow uppercase">Family Feud</span>
+          <span className="text-[13px] font-extrabold text-feud-muted">Round {roundHistory.length + 1}</span>
         </div>
         <button
           type="button"
           onClick={onOpenControls}
-          aria-label="Apri pannello master"
-          className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-ff-line bg-ff-surface text-ff-gold active:scale-95"
+          aria-label="Apri il pannello del master"
+          className="feud-press flex h-11 w-11 items-center justify-center rounded-full bg-feud-navy/60"
         >
-          <IconSliders />
+          <IconSliders size={20} />
         </button>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
-        <TeamScore side="A" name={teamA.name} score={teamA.score} active={activeTeam === "A"} isSteal={isSteal} />
-        <TeamScore side="B" name={teamB.name} score={teamB.score} active={activeTeam === "B"} isSteal={isSteal} />
+        <TeamScore side="A" name={teamA.name} score={teamA.score} active={activeTeam === "A"} />
+        <TeamScore side="B" name={teamB.name} score={teamB.score} active={activeTeam === "B"} />
       </div>
 
-      {isSteal ? (
-        <>
-          <div className="flex flex-col gap-1 rounded-[22px] bg-ff-orange px-[18px] py-4 text-ff-orange-ink">
-            <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ff-orange-ink-soft">
-              Steal · {stealingName}
-            </span>
-            {revealing ? (
-              <>
-                <span className="font-display text-[22px] leading-tight">Vediamo le risposte rimaste…</span>
-                <span className="text-sm font-bold">Avranno indovinato?</span>
-              </>
-            ) : (
-              <>
-                <span className="font-display text-[30px] leading-none">STEAL!</span>
-                <span className="text-sm font-bold">Hanno una sola risposta per rubare il round.</span>
-              </>
-            )}
-          </div>
-          <span className="text-xs font-extrabold uppercase tracking-[0.1em] text-ff-gold">{round.category}</span>
-        </>
-      ) : (
-        <div className="flex flex-col gap-1.5 rounded-[22px] bg-ff-gold px-[18px] pb-[18px] pt-4 text-ff-gold-ink">
-          <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ff-gold-ink-soft">
-            Abbiamo chiesto a 100 persone
-          </span>
-          <h1 className="font-display text-[23px] uppercase leading-[1.12]">{round.category}</h1>
-        </div>
-      )}
+      <section className="flex flex-col gap-1.5 pt-1">
+        <h1 className="m-0 font-feud text-[38px] leading-[0.92] font-black text-balance uppercase">{round.category}</h1>
+        <p className="m-0 text-[13px] font-semibold text-feud-muted">Le risposte più date da 100 persone</p>
+      </section>
 
       <ol className="flex flex-col gap-1.5">
-        {round.answers.map((answer, index) => {
-          if (isGuessed(answer)) {
-            return (
-              <li key={index} className="flex min-h-[50px] items-center gap-3 rounded-[14px] bg-ff-text py-1.5 pl-[7px] pr-3.5 text-ff-bg">
-                <RankBadge rank={answer.rank} className="bg-ff-bg text-ff-gold" />
-                <span className="text-base font-extrabold leading-tight animate-fade-in">{answer.value}</span>
-              </li>
-            );
-          }
-          if (answer.revealedInSteal) {
-            return (
-              <li key={index} className="flex min-h-[50px] items-center gap-3 rounded-[14px] border border-ff-gold bg-ff-shown py-1.5 pl-1.5 pr-3.5">
-                <RankBadge rank={answer.rank} className="bg-[#252C4F] text-ff-gold" />
-                <span className="flex-1 text-base font-extrabold leading-tight animate-fade-in">{answer.value}</span>
-                <span className="text-[11px] font-extrabold tracking-[0.08em] text-ff-gold-soft">SVELATA</span>
-              </li>
-            );
-          }
-          if (revealing) {
-            return (
-              <li key={index}>
-                <button
-                  type="button"
-                  onClick={() => dispatch({ type: "STEAL_REVEAL_ANSWER", payload: { answerIndex: index } })}
-                  aria-label={`Svela la risposta numero ${answer.rank}`}
-                  className="flex min-h-[50px] w-full items-center gap-3 rounded-[14px] border-2 border-dashed border-ff-gold bg-ff-surface pl-[5px] pr-3.5 text-left active:scale-[0.98]"
-                >
-                  <RankBadge rank={answer.rank} className="bg-ff-gold text-ff-gold-ink" />
-                  <span className="flex-1 text-sm font-bold text-ff-gold-soft">Tocca per svelare</span>
-                  <span className="text-ff-gold"><IconEye /></span>
-                </button>
-              </li>
-            );
-          }
-          return (
-            <li key={index} className="flex h-[50px] items-center gap-3 rounded-[14px] border border-ff-line-soft bg-ff-surface pl-1.5 pr-3.5">
-              <RankBadge rank={answer.rank} className="bg-ff-surface-2 text-ff-muted" />
-              <span className="h-1.5 flex-1 rounded-full bg-[#1B2249]" />
-            </li>
-          );
-        })}
+        {round.answers.map((answer, index) => (
+          <Slat
+            key={`${index}-${isGuessed(answer) ? "on" : "off"}`}
+            answer={answer}
+            seenKey={`${roundKey}:a${index}`}
+          />
+        ))}
       </ol>
 
-      <div className="mt-auto">
+      <Strikes strikes={strikes} seenKey={`${roundKey}:strikes`} />
+    </FeudScreen>
+  );
+}
+
+function TeamScore({ side, name, score, active }: { side: Side; name: string; score: number; active: boolean }) {
+  const t = TEAM[side];
+  if (active) {
+    return (
+      <div className={`flex h-[72px] items-end justify-between gap-2 rounded-2xl px-3.5 py-2.5 ${t.solid}`}>
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-[11px] font-extrabold tracking-[0.05em] uppercase">Tocca a voi</span>
+          <span className="truncate text-[15px] font-extrabold">{name}</span>
+        </span>
+        <span className="font-feud text-[46px] leading-[0.9] font-black">{score}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex h-[72px] items-end justify-between gap-2 rounded-2xl border-2 border-white/25 px-3.5 py-2.5">
+      <span className={`truncate text-[15px] font-extrabold ${t.outlineText}`}>{name}</span>
+      <span className={`font-feud text-[46px] leading-[0.9] font-black ${t.outlineScore}`}>{score}</span>
+    </div>
+  );
+}
+
+/** Una riga del tabellone: coperta (blu notte) o indovinata (gialla, si gira la prima volta). */
+function Slat({ answer, seenKey }: { answer: Answer; seenKey: string }) {
+  const guessed = isGuessed(answer);
+  const fresh = useFirstShow(seenKey, guessed ? 1 : 0);
+
+  if (guessed) {
+    return (
+      <li className={`flex min-h-[42px] items-center gap-3 rounded-[10px] bg-feud-yellow py-1.5 pr-3.5 pl-1.5 text-feud-ink ${fresh ? "feud-flip" : ""}`}>
+        <RankOval rank={answer.rank} className="bg-feud-ink text-feud-yellow" />
+        <span className="font-feud text-[25px] leading-none font-extrabold uppercase">{answer.value}</span>
+      </li>
+    );
+  }
+  return (
+    <li className="flex h-[42px] items-center rounded-[10px] bg-feud-navy pl-1.5" aria-label={`Risposta ${answer.rank}, coperta`}>
+      <RankOval rank={answer.rank} className="bg-feud-yellow text-feud-ink" />
+    </li>
+  );
+}
+
+function Strikes({ strikes, seenKey }: { strikes: number; seenKey: string }) {
+  const flash = useGrowthFlash(seenKey, strikes);
+  return (
+    <>
+      <div className="mt-auto grid grid-cols-3 gap-2" aria-label={`Errori: ${strikes} su ${MAX_LIVES}`}>
+        {Array.from({ length: MAX_LIVES }).map((_, i) => {
+          const on = i < strikes;
+          const isNew = flash && i === strikes - 1;
+          return (
+            <div
+              key={i}
+              className={`flex h-14 items-center justify-center rounded-[14px] border-2 ${
+                on ? "border-feud-red bg-feud-red text-white" : "border-white/20 text-white/30"
+              } ${isNew ? "feud-slam" : ""}`}
+            >
+              <FeudX />
+            </div>
+          );
+        })}
+      </div>
+      {flash && (
+        <div className="feud-stamp-scrim pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-feud-navy/55" aria-hidden>
+          <span className="feud-stamp text-feud-red">
+            <FeudX size={260} strokeWidth={3.6} />
+          </span>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** Il furto: tutto lo schermo diventa corallo. */
+function StealBoard({
+  gameState,
+  roundKey,
+  revealing,
+  dispatch,
+  onOpenControls,
+}: {
+  gameState: GameState;
+  roundKey: string;
+  revealing: boolean;
+  dispatch: React.Dispatch<GameAction>;
+  onOpenControls: () => void;
+}) {
+  const { teamA, teamB, currentRound: round, roundHistory } = gameState;
+  if (!round) return null;
+
+  const stealingName = round.activeTeam === "A" ? teamA.name : teamB.name;
+  const defendingName = round.activeTeam === "A" ? teamB.name : teamA.name;
+  const notGuessed = round.answers.filter((a) => !isGuessed(a)).length;
+  const shownInSteal = round.answers.filter((a) => a.revealedInSteal).length;
+
+  return (
+    <FeudScreen tone="coral">
+      <div className="flex h-11 items-center justify-between text-sm font-extrabold">
+        <span>Round {roundHistory.length + 1}</span>
+        <span className="truncate pl-3">
+          {teamA.name} {teamA.score} · {teamB.name} {teamB.score}
+        </span>
+      </div>
+
+      <section className="flex flex-col gap-3">
         {revealing ? (
-          <div className="flex h-[52px] items-center justify-between rounded-2xl border border-ff-line-soft bg-ff-surface pl-4 pr-2">
-            <span className="text-[13px] font-bold text-[#C9CFEA]">
+          <>
+            <h1 className="m-0 font-feud text-[64px] leading-[0.85] font-black uppercase">Vediamo le altre…</h1>
+            <p className="m-0 text-[22px] leading-tight font-extrabold text-balance">L’avranno detta, {stealingName}?</p>
+          </>
+        ) : (
+          <>
+            <h1 className="m-0 font-feud text-[168px] leading-[0.78] font-black tracking-[-0.01em] uppercase">Ruba!</h1>
+            <p className="m-0 text-[22px] leading-tight font-extrabold text-balance">
+              {stealingName} ha una sola risposta per rubare il round.
+            </p>
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <span className="flex gap-1" aria-hidden>
+                {Array.from({ length: MAX_LIVES }).map((_, i) => (
+                  <span key={i} className="flex h-[22px] w-[22px] items-center justify-center rounded-md bg-feud-coral-ink text-feud-coral">
+                    <FeudX size={12} strokeWidth={4} />
+                  </span>
+                ))}
+              </span>
+              {MAX_LIVES} errori per {defendingName}
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="mt-auto flex flex-col gap-2">
+        <span className="text-sm font-extrabold">{round.category}</span>
+        <ol className="grid grid-flow-col grid-cols-2 grid-rows-4 gap-1.5">
+          {round.answers.map((answer, index) => {
+            if (isGuessed(answer) || answer.revealedInSteal) {
+              return (
+                <StealSlat key={`${index}-on`} answer={answer} seenKey={`${roundKey}:${answer.revealedInSteal ? "s" : "a"}${index}`} shown={!!answer.revealedInSteal} />
+              );
+            }
+            if (revealing) {
+              return (
+                <li key={`${index}-off`}>
+                  <button
+                    type="button"
+                    onClick={() => dispatch({ type: "STEAL_REVEAL_ANSWER", payload: { answerIndex: index } })}
+                    aria-label={`Svela la risposta numero ${answer.rank}`}
+                    className="feud-press flex h-9 w-full items-center gap-2.5 rounded-[9px] border-2 border-dashed border-feud-coral-ink pr-2 pl-1 text-left"
+                  >
+                    <RankOval rank={answer.rank} className="h-6 w-[30px] bg-feud-coral-ink text-base text-feud-coral" />
+                    <span className="flex-1 text-xs font-extrabold">Svela</span>
+                    <IconEye size={16} />
+                  </button>
+                </li>
+              );
+            }
+            return (
+              <li key={`${index}-off`} className="flex h-9 items-center rounded-[9px] bg-feud-coral-ink/15 pl-1">
+                <RankOval rank={answer.rank} className="h-6 w-[30px] bg-feud-coral-ink/20 text-base" />
+              </li>
+            );
+          })}
+        </ol>
+        {revealing && (
+          <div className="mt-1 flex h-[52px] items-center justify-between rounded-2xl bg-feud-coral-ink pr-2 pl-4 text-white">
+            <span className="text-[13px] font-bold">
               Svelate {shownInSteal} di {notGuessed}
             </span>
             <button
               type="button"
               onClick={onOpenControls}
-              className="h-[38px] rounded-[11px] bg-ff-gold px-3.5 text-[13px] font-extrabold text-ff-gold-ink active:scale-95"
+              className="feud-press h-[38px] rounded-[11px] bg-feud-coral px-3.5 text-[13px] font-extrabold text-feud-coral-ink"
             >
               Vai al verdetto
             </button>
           </div>
-        ) : (
-          <Strikes strikes={MAX_LIVES - round.livesRemaining} />
         )}
-      </div>
-    </MasterScreen>
+        {!revealing && (
+          <button
+            type="button"
+            onClick={onOpenControls}
+            aria-label="Apri il pannello del master"
+            className="feud-press mt-1 flex h-11 items-center justify-center gap-2 self-end rounded-full border-2 border-feud-coral-ink px-4 text-sm font-extrabold"
+          >
+            <IconSliders size={18} />
+            Pannello
+          </button>
+        )}
+      </section>
+    </FeudScreen>
   );
 }
 
-function TeamScore({
-  side,
-  name,
-  score,
-  active,
-  isSteal,
-}: {
-  side: "A" | "B";
-  name: string;
-  score: number;
-  active: boolean;
-  isSteal: boolean;
-}) {
-  const base = side === "A" ? "bg-ff-team-a" : "bg-ff-team-b";
-  const nameColor = side === "A" ? "text-ff-team-a-text" : "text-ff-team-b-text";
-  const ring = active ? "ring-2 ring-ff-gold" : side === "A" ? "ring-1 ring-[#2A3D78]" : "ring-1 ring-[#4A2C22]";
-
+function StealSlat({ answer, seenKey, shown }: { answer: Answer; seenKey: string; shown: boolean }) {
+  const fresh = useFirstShow(seenKey, 1);
   return (
-    <div className={`flex h-[84px] flex-col justify-between rounded-[18px] px-3.5 py-3 ${base} ${ring}`}>
-      <div className="flex items-center justify-between gap-2">
-        <span className={`truncate text-[15px] font-extrabold ${nameColor}`}>{name}</span>
-        {active && (
-          <span className="flex h-5 shrink-0 items-center rounded-full bg-ff-gold px-2 text-[10px] font-extrabold tracking-[0.08em] text-ff-gold-ink">
-            {isSteal ? "STEAL" : "IN GIOCO"}
-          </span>
-        )}
-      </div>
-      <span className="font-display text-[34px] leading-none">{score}</span>
-    </div>
-  );
-}
-
-function Strikes({ strikes }: { strikes: number }) {
-  return (
-    <div className="grid grid-cols-3 gap-2" aria-label={`Errori: ${strikes} su ${MAX_LIVES}`}>
-      {Array.from({ length: MAX_LIVES }).map((_, i) =>
-        i < strikes ? (
-          <div key={i} className="flex h-[52px] items-center justify-center rounded-[14px] bg-ff-red text-white">
-            <IconX size={26} strokeWidth={3.2} />
-          </div>
-        ) : (
-          <div key={i} className="flex h-[52px] items-center justify-center rounded-[14px] border-2 border-ff-line text-ff-line">
-            <IconX size={26} strokeWidth={3.2} />
-          </div>
-        )
-      )}
-    </div>
+    <li
+      className={`flex h-9 items-center gap-2.5 rounded-[9px] pr-2.5 pl-1 ${
+        shown ? "border-2 border-feud-coral-ink bg-feud-coral-pale text-feud-coral-ink" : "bg-feud-coral-ink text-white"
+      } ${fresh ? "feud-flip" : ""}`}
+    >
+      <RankOval
+        rank={answer.rank}
+        className={`h-6 w-[30px] text-base ${shown ? "bg-feud-coral-ink text-feud-coral-pale" : "bg-feud-coral text-feud-coral-ink"}`}
+      />
+      <span className="truncate font-feud text-xl leading-none font-extrabold uppercase">{answer.value}</span>
+    </li>
   );
 }

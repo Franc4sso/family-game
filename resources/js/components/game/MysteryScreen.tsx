@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { cluePoints, MYSTERY_MAX_CLUES } from "@/services/mysteryService";
-import type { GameState, Team } from "@/types/game.types";
+import type { GameState, Top100Team } from "@/types/game.types";
 import type { GameAction } from "@/types";
+import { MystScreen, MystSilhouette } from "../mystery/parts";
 
 interface MysteryScreenProps {
   gameState: GameState;
@@ -10,219 +11,251 @@ interface MysteryScreenProps {
   canUndo: boolean;
 }
 
+const IconClose = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
+const IconUndo = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M9 14L4 9l5-5" />
+    <path d="M4 9h11a5 5 0 0 1 0 10h-3" />
+  </svg>
+);
+
 export function MysteryScreen({ gameState, dispatch, onUndo, canUndo }: MysteryScreenProps) {
-  const { teamA, teamB, mystery } = gameState;
+  const { mystery } = gameState;
   const [confirmExit, setConfirmExit] = useState(false);
-  const [nameShown, setNameShown] = useState(false);
+  const [peek, setPeek] = useState(false);
+  // "Nessuno ci arriva": si mostra comunque il nome a tutti prima di andare avanti
+  const [nobody, setNobody] = useState(false);
 
   if (!mystery) return null;
 
+  const { teams } = mystery;
   const finished = mystery.currentIndex >= mystery.deck.length;
 
-  // ───────────────────────── Schermata finale ─────────────────────────
   if (finished) {
-    const tie = teamA.score === teamB.score;
-    const winner: Team | null = tie ? null : teamA.score > teamB.score ? teamA : teamB;
+    return <MysteryEnd teams={teams} played={mystery.deck.length} onNewGame={() => dispatch({ type: "CLEAR_MODE" })} />;
+  }
 
+  const character = mystery.deck[mystery.currentIndex];
+  const n = mystery.cluesRevealed;
+  const points = cluePoints(n);
+  const allCluesRevealed = n >= MYSTERY_MAX_CLUES;
+  const isLast = mystery.currentIndex + 1 >= mystery.deck.length;
+  const current = character.clues[n - 1];
+  const previous = character.clues.slice(0, n - 1).map((text, i) => ({ text, n: i + 1 })).reverse();
+
+  const goNext = () => {
+    setNobody(false);
+    setPeek(false);
+    dispatch({ type: "MYSTERY_NEXT" });
+  };
+
+  // ───────────────────────── Rivelazione ─────────────────────────
+  if (mystery.solvedBy !== null || nobody) {
+    const winner = mystery.solvedBy !== null ? teams[mystery.solvedBy] : null;
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-8 bg-neutral-950 text-neutral-100">
-        <div className="text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">Fine partita</p>
-          <h2 className="text-2xl font-semibold">
-            {winner ? `Vince ${winner.name}` : "Pareggio"}
-          </h2>
-        </div>
+      <div
+        className="myst-up min-h-dvh font-myst-ui text-myst-ink"
+        style={{ background: winner ? winner.color : "var(--color-myst-text)" }}
+      >
+        <div className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5 pt-3 pb-5">
+          <div className="flex h-11 items-center justify-between gap-3 text-sm font-bold text-myst-ink/70">
+            <span className="truncate">{winner ? `Indovinato da ${winner.name}` : "Nessuno l’ha indovinato"}</span>
+            <span className="shrink-0">{character.category}</span>
+          </div>
+          <MystSilhouette size={120} body="#1A0B45" />
+          <span className="text-xl font-bold">Era</span>
+          <h1
+            className={`m-0 -mt-2.5 font-myst leading-[0.95] font-normal break-words ${
+              character.name.length > 18 ? "text-[46px]" : "text-[64px]"
+            }`}
+          >
+            {character.name}
+          </h1>
+          {winner && (
+            <span className="self-start rounded-2xl bg-myst-ink px-4 py-2.5 text-xl font-extrabold" style={{ color: winner.color }}>
+              +{points} a {winner.name}
+            </span>
+          )}
+          <span className="text-[15px] font-semibold text-myst-ink/70">
+            {n === 1 ? "Al primo indizio." : `Con ${n} indizi su ${MYSTERY_MAX_CLUES}.`}
+          </span>
 
-        <div className="w-full max-w-sm grid grid-cols-2 gap-px bg-white/10 rounded-2xl overflow-hidden">
-          {([["A", teamA], ["B", teamB]] as const).map(([side, t]) => {
-            const win = !tie && winner === t;
-            return (
-              <div key={side} className="bg-neutral-900 p-5 text-center">
-                <div className="flex items-center justify-center gap-1.5 mb-2">
-                  <span className={`w-1.5 h-1.5 rounded-full ${side === "A" ? "bg-blue-500" : "bg-red-500"}`} />
-                  <span className="text-xs text-neutral-400 truncate">{t.name}</span>
-                </div>
-                <div className={`text-3xl font-semibold tabular-nums ${win ? "text-white" : "text-neutral-400"}`}>
-                  {t.score}
-                </div>
-              </div>
-            );
-          })}
+          <div className="mt-auto flex flex-col gap-2 pt-2">
+            <button
+              type="button"
+              onClick={goNext}
+              className="myst-press h-[58px] rounded-[18px] bg-myst-ink text-[17px] font-extrabold text-myst-text"
+            >
+              {isLast ? "Classifica finale" : "Prossimo personaggio"}
+            </button>
+            <button
+              type="button"
+              onClick={() => (nobody ? setNobody(false) : onUndo())}
+              disabled={!nobody && !canUndo}
+              className="myst-press h-[46px] rounded-[14px] border-2 border-myst-ink text-sm font-bold disabled:opacity-40"
+            >
+              Annulla, torna agli indizi
+            </button>
+          </div>
         </div>
-
-        <button
-          onClick={() => dispatch({ type: "CLEAR_MODE" })}
-          className="w-full max-w-sm bg-white text-neutral-900 font-medium rounded-xl py-3.5 active:bg-neutral-200 transition-colors"
-        >
-          Nuova partita
-        </button>
       </div>
     );
   }
 
-  // ───────────────────────── Schermata di gioco ─────────────────────────
-  const character = mystery.deck[mystery.currentIndex];
-  const points = cluePoints(mystery.cluesRevealed);
-  const allCluesRevealed = mystery.cluesRevealed >= MYSTERY_MAX_CLUES;
-  const isLast = mystery.currentIndex + 1 >= mystery.deck.length;
-  const progress = (mystery.currentIndex / mystery.deck.length) * 100;
-  const visibleClues = character.clues.slice(0, mystery.cluesRevealed);
-
+  // ───────────────────────── Indizi ─────────────────────────
+  const twoRows = teams.length > 2;
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-950 text-neutral-100">
-      {/* Header */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="flex items-center justify-between text-xs text-neutral-500 mb-2">
-          <button onClick={() => setConfirmExit(true)} className="active:text-neutral-300 transition-colors">
-            Esci
-          </button>
-          <span className="tabular-nums tracking-wide">
-            {mystery.currentIndex + 1} / {mystery.deck.length}
-          </span>
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            className="active:text-neutral-300 disabled:opacity-30 transition-colors"
-          >
-            Annulla
-          </button>
-        </div>
-        <div className="h-0.5 rounded-full bg-white/10 overflow-hidden">
-          <div className="h-full bg-indigo-400/60 transition-all duration-300" style={{ width: `${progress}%` }} />
+    <MystScreen>
+      <div className="flex h-11 items-center justify-between">
+        <button
+          type="button"
+          aria-label="Esci dal gioco"
+          onClick={() => setConfirmExit(true)}
+          className="myst-press flex h-11 w-11 items-center justify-center rounded-full border-2 border-myst-line"
+        >
+          <IconClose />
+        </button>
+        <span className="text-sm font-bold text-myst-muted">
+          Personaggio {mystery.currentIndex + 1} di {mystery.deck.length}
+        </span>
+        <button
+          type="button"
+          aria-label="Annulla l’ultima azione"
+          onClick={onUndo}
+          disabled={!canUndo}
+          className="myst-press flex h-11 w-11 items-center justify-center rounded-full border-2 border-myst-line disabled:opacity-30"
+        >
+          <IconUndo />
+        </button>
+      </div>
+
+      <div className={`grid gap-1.5 ${teams.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+        {teams.map((t) => (
+          <div key={t.name} className={`flex items-center justify-between gap-2 rounded-xl bg-myst-panel px-3 ${twoRows ? "h-10" : "h-12"}`}>
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: t.color }} />
+              <span className="truncate text-sm font-bold">{t.name}</span>
+            </span>
+            <span className="font-myst text-[22px] leading-none">{t.score}</span>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        aria-label="Tieni premuto per vedere il personaggio"
+        onPointerDown={() => setPeek(true)}
+        onPointerUp={() => setPeek(false)}
+        onPointerLeave={() => setPeek(false)}
+        onPointerCancel={() => setPeek(false)}
+        onKeyDown={(e) => (e.key === " " || e.key === "Enter") && setPeek(true)}
+        onKeyUp={() => setPeek(false)}
+        onContextMenu={(e) => e.preventDefault()}
+        className="myst-press flex w-full touch-none items-center gap-3.5 rounded-[22px] bg-myst-violet py-3 pr-4 pl-3 text-left [-webkit-touch-callout:none]"
+      >
+        <MystSilhouette size={60} body="#25106A" mark="?" markColor="#D9C6FF" />
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="self-start rounded-full bg-myst-deep px-2.5 py-0.5 text-xs font-bold text-myst-muted">{character.category}</span>
+          {peek ? (
+            <span className="font-myst text-[28px] leading-none">{character.name}</span>
+          ) : (
+            <>
+              <span className="text-[15px] font-bold">Tieni premuto per vedere chi è</span>
+              <span className="text-xs font-medium text-myst-muted">Solo tu: non girare il telefono</span>
+            </>
+          )}
+        </span>
+      </button>
+
+      <div className="flex items-center gap-3.5 px-1">
+        <span className="flex items-baseline gap-1.5">
+          <span className="font-myst text-[72px] leading-[0.85]">{points}</span>
+          <span className="text-[15px] font-bold text-myst-muted">{points === 1 ? "punto" : "punti"}</span>
+        </span>
+        <div className="grid flex-1 grid-cols-10 items-end gap-1" aria-hidden>
+          {Array.from({ length: MYSTERY_MAX_CLUES }).map((_, i) => {
+            const value = MYSTERY_MAX_CLUES - i;
+            const bg = value > points ? "bg-myst-spent" : value === points ? "bg-myst-text" : "bg-myst-bar";
+            return <span key={i} className={`rounded-[3px] ${bg}`} style={{ height: 12 + value * 3 }} />;
+          })}
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col px-4 pb-4 gap-3 max-w-md w-full mx-auto">
-        {/* Punteggi */}
-        <div className="flex items-center justify-center gap-4 text-center">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-            <span className="text-xs text-neutral-400 max-w-[5.5rem] truncate">{teamA.name}</span>
-            <span className="text-lg font-semibold tabular-nums">{teamA.score}</span>
-          </div>
-          <span className="text-xs text-neutral-600">·</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-lg font-semibold tabular-nums">{teamB.score}</span>
-            <span className="text-xs text-neutral-400 max-w-[5.5rem] truncate">{teamB.name}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-          </div>
-        </div>
+      <section key={`${mystery.currentIndex}-${n}`} aria-live="polite" className="myst-clue-in flex flex-col gap-2.5 rounded-[22px] bg-myst-text p-[18px] text-myst-ink">
+        <span className="flex items-baseline justify-between">
+          <span className="font-myst text-[22px]">Indizio {n}</span>
+          <span className="text-[13px] font-bold text-myst-line-2">di {MYSTERY_MAX_CLUES}</span>
+        </span>
+        <p className="m-0 text-xl leading-[1.38] font-semibold">{current}</p>
+      </section>
 
-        {/* Personaggio nascosto (solo master) + categoria */}
-        <div className="bg-neutral-900/60 border border-white/10 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-500">
-              Personaggio
-            </p>
-            <p className={`text-base font-semibold truncate ${nameShown ? "text-neutral-50" : "text-neutral-700"}`}>
-              {nameShown ? character.name : "• • • • • •"}
-            </p>
-          </div>
-          <button
-            onClick={() => setNameShown((v) => !v)}
-            className="shrink-0 text-xs text-neutral-400 border border-white/15 rounded-lg px-3 py-2 active:text-neutral-200 hover:border-white/30 transition-all"
-          >
-            {nameShown ? "Nascondi" : "Mostra a me"}
-          </button>
-        </div>
-
-        {/* Valore corrente */}
-        <div className="flex items-center justify-center gap-2 text-center">
-          <span className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">Vale</span>
-          <span className="text-2xl font-semibold tabular-nums text-indigo-300">{points}</span>
-          <span className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
-            {points === 1 ? "punto" : "punti"}
-          </span>
-        </div>
-
-        {/* Indizi a cascata */}
-        <div className="space-y-2">
-          {visibleClues.map((clue, i) => (
-            <div
-              key={i}
-              className="bg-neutral-900/70 border border-white/10 rounded-xl px-3.5 py-2.5 flex gap-2.5"
-            >
-              <span className="shrink-0 text-xs font-semibold text-indigo-300/80 tabular-nums w-4 text-center pt-0.5">
-                {i + 1}
-              </span>
-              <p className="text-sm text-neutral-200 leading-relaxed">{clue}</p>
-            </div>
+      {previous.length > 0 && (
+        <ol className="m-0 flex list-none flex-col gap-2 px-1 py-0">
+          {previous.map((p) => (
+            <li key={p.n} className="flex gap-2.5 text-sm leading-snug text-myst-muted">
+              <span className="w-[18px] shrink-0 font-myst text-myst-lilac">{p.n}</span>
+              <span>{p.text}</span>
+            </li>
           ))}
-        </div>
+        </ol>
+      )}
 
-        {/* Rivela prossimo indizio */}
+      <div className="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-2 bg-myst-night px-4 pt-2.5 pb-1">
         <button
+          type="button"
           onClick={() => dispatch({ type: "MYSTERY_REVEAL_CLUE" })}
           disabled={allCluesRevealed}
-          className="border border-dashed border-white/15 rounded-xl py-3 text-sm text-neutral-300 active:text-neutral-100 hover:border-white/30 disabled:opacity-30 disabled:border-white/10 transition-all"
+          className="myst-press h-14 rounded-[18px] bg-myst-lilac text-[17px] font-extrabold text-myst-ink disabled:opacity-40"
         >
-          {allCluesRevealed ? "Tutti gli indizi rivelati" : "Rivela prossimo indizio"}
+          {allCluesRevealed ? "Hai letto tutti gli indizi" : `Prossimo indizio · vale ${points - 1}`}
         </button>
-
-        {/* Assegnazione + prossimo */}
-        <div className="mt-auto pt-1 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            {([["A", teamA, "bg-blue-500"], ["B", teamB, "bg-red-500"]] as const).map(
-              ([side, t, dot]) => {
-                const isSel = mystery.solvedBy === side;
-                return (
-                  <button
-                    key={side}
-                    onClick={() => dispatch({ type: "MYSTERY_SOLVED", payload: { team: side } })}
-                    className={`rounded-xl py-3 px-2 border text-sm font-medium transition-all active:scale-[0.97] ${
-                      isSel
-                        ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-200"
-                        : "border-white/10 bg-neutral-900/70 text-neutral-300"
-                    }`}
-                  >
-                    <span className="flex items-center justify-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-                      <span className="truncate">{t.name}</span>
-                    </span>
-                    <span className="block text-[11px] text-neutral-500 mt-0.5">
-                      {isSel ? `+${points} assegnati` : "Indovinato"}
-                    </span>
-                  </button>
-                );
-              }
-            )}
-          </div>
-
-          <button
-            onClick={() => dispatch({ type: "MYSTERY_NEXT" })}
-            className={`w-full rounded-xl py-3.5 font-medium transition-colors ${
-              mystery.solvedBy
-                ? "bg-white text-neutral-900 active:bg-neutral-200"
-                : "bg-white/10 text-neutral-300 active:bg-white/15"
-            }`}
-          >
-            {mystery.solvedBy
-              ? isLast
-                ? "Risultati finali"
-                : "Prossimo personaggio"
-              : isLast
-                ? "Nessuno → risultati finali"
-                : "Nessuno → prossimo"}
-          </button>
+        <span className="px-1 pt-0.5 text-[13px] font-bold text-myst-muted">Chi l’ha indovinato?</span>
+        <div className={`grid gap-1.5 ${teams.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+          {teams.map((t, i) => (
+            <button
+              key={t.name}
+              type="button"
+              onClick={() => dispatch({ type: "MYSTERY_SOLVED", payload: { team: i } })}
+              className="myst-press h-[46px] truncate rounded-[14px] border-2 px-2.5 text-[15px] font-extrabold"
+              style={{ borderColor: t.color, color: t.color }}
+            >
+              {t.name}
+            </button>
+          ))}
         </div>
+        <button
+          type="button"
+          onClick={() => setNobody(true)}
+          className="myst-press h-11 text-sm font-bold text-myst-muted"
+        >
+          Nessuno ci arriva, svela chi è
+        </button>
       </div>
 
-      {/* Conferma uscita */}
       {confirmExit && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 max-w-xs w-full text-center space-y-4">
-            <p className="text-neutral-100 font-medium">Uscire dal gioco?</p>
-            <p className="text-xs text-neutral-500">I punteggi attuali andranno persi.</p>
-            <div className="flex gap-2">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-myst-ink/70 sm:items-center">
+          <div role="dialog" aria-modal="true" aria-labelledby="myst-exit" className="myst-up flex w-full max-w-md flex-col gap-3 rounded-t-[26px] bg-myst-panel px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:rounded-[26px]">
+            <h2 id="myst-exit" className="m-0 font-myst text-[30px] leading-none font-normal">
+              Uscire dal gioco?
+            </h2>
+            <p className="m-0 text-sm text-myst-muted">I punteggi di questa partita andranno persi.</p>
+            <div className="grid grid-cols-2 gap-2 pt-1">
               <button
+                type="button"
                 onClick={() => setConfirmExit(false)}
-                className="flex-1 rounded-lg py-2.5 text-sm bg-white/5 border border-white/10 text-neutral-300 active:bg-white/10"
+                className="myst-press h-[52px] rounded-2xl border-2 border-myst-line-2 text-[15px] font-bold"
               >
-                Annulla
+                Resta
               </button>
               <button
+                type="button"
                 onClick={() => dispatch({ type: "CLEAR_MODE" })}
-                className="flex-1 rounded-lg py-2.5 text-sm bg-rose-500/90 text-white active:bg-rose-600"
+                className="myst-press h-[52px] rounded-2xl bg-myst-text text-[15px] font-extrabold text-myst-ink"
               >
                 Esci
               </button>
@@ -230,6 +263,60 @@ export function MysteryScreen({ gameState, dispatch, onUndo, canUndo }: MysteryS
           </div>
         </div>
       )}
-    </div>
+    </MystScreen>
+  );
+}
+
+function MysteryEnd({ teams, played, onNewGame }: { teams: Top100Team[]; played: number; onNewGame: () => void }) {
+  const ranking = [...teams].sort((a, b) => b.score - a.score);
+  const [first, ...rest] = ranking;
+  const tie = ranking.length > 1 && ranking[1].score === first.score;
+
+  return (
+    <MystScreen>
+      <span className="flex h-11 items-center text-sm font-bold text-myst-muted">Fine partita · {played} personaggi</span>
+
+      <section className="flex flex-col gap-1.5">
+        <span className="text-xl font-bold text-myst-muted">{tie ? "Finisce in parità" : "Il mistero più risolto è di"}</span>
+        <h1 className="m-0 font-myst text-[64px] leading-[0.92] font-normal break-words" style={{ color: first.color }}>
+          {tie ? "Pareggio!" : first.name}
+        </h1>
+      </section>
+
+      <ol className="m-0 flex list-none flex-col gap-2 p-0">
+        <li className="flex items-center justify-between gap-3 rounded-[22px] px-5 py-[18px] text-myst-ink" style={{ background: first.color }}>
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="text-[13px] font-bold text-myst-ink/70">1° posto</span>
+            <span className="truncate text-xl font-extrabold">{first.name}</span>
+          </span>
+          <span className="font-myst text-[72px] leading-[0.85]">{first.score}</span>
+        </li>
+        {rest.map((t) => {
+          const place = ranking.findIndex((r) => r.score === t.score) + 1;
+          return (
+            <li key={t.name} className="flex h-[54px] items-center gap-3 rounded-2xl border-2 border-myst-line pr-[18px] pl-3">
+              <span className="w-[18px] font-myst text-xl text-myst-muted">{place}</span>
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: t.color }} />
+              <span className="min-w-0 flex-1 truncate text-[17px] font-extrabold">{t.name}</span>
+              <span className="font-myst text-[30px] leading-none">{t.score}</span>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="flex justify-center pt-2">
+        <MystSilhouette size={110} body="#3D1E8C" mark="!" markColor="#B79CFF" />
+      </div>
+
+      <div className="mt-auto pt-2">
+        <button
+          type="button"
+          onClick={onNewGame}
+          className="myst-press h-[58px] w-full rounded-[18px] bg-myst-text text-[17px] font-extrabold text-myst-ink"
+        >
+          Nuova partita
+        </button>
+      </div>
+    </MystScreen>
   );
 }

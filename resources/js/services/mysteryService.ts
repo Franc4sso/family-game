@@ -6,6 +6,15 @@ import {
 /** Numero massimo di indizi per personaggio. */
 export const MYSTERY_MAX_CLUES = 10;
 
+export const MYSTERY_MIN_TEAMS = 2;
+export const MYSTERY_MAX_TEAMS = 6;
+
+/**
+ * Colori delle squadre: tutti chiari, così reggono il testo viola scuro
+ * e si distinguono sul fondo viola notte.
+ */
+export const MYSTERY_TEAM_COLORS = ["#CDB8FF", "#FFB547", "#7FE3C1", "#FF9CCB", "#8FD3FF", "#D7F27A"];
+
 /** Mescola un array (Fisher-Yates) senza mutare l'originale. */
 function shuffle<T>(items: T[]): T[] {
   const result = [...items];

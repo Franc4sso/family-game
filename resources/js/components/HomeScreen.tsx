@@ -1,166 +1,64 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import type { Dispatch } from "react";
 import type { GameAction } from "@/types/actions.types";
 import type { GameMode } from "@/types/game.types";
+import { GAMES, type GameId } from "./home/games";
+import { GameCover } from "./home/GameCover";
+import { GameSheet } from "./home/GameSheet";
 
 interface HomeScreenProps {
   dispatch: Dispatch<GameAction>;
 }
 
+/** Dimensioni di ogni copertina: su telefono griglia a 2 colonne, da tablet in su scaffale a celle. */
+const COVER_LAYOUT: Record<GameId, string> = {
+  ff: "col-span-2 h-[188px] md:h-auto md:row-span-2",
+  rubo: "h-[218px] md:h-auto",
+  mystery: "h-[218px] md:h-auto",
+  top100: "h-[218px] md:h-auto",
+  asta: "h-[218px] md:h-auto",
+  "higher-lower": "h-[218px] md:h-auto",
+  "guess-number": "h-[218px] md:h-auto",
+  qdcp: "col-span-2 h-[150px] md:h-auto",
+};
+
+const ORDER: GameId[] = ["ff", "rubo", "mystery", "top100", "asta", "higher-lower", "guess-number", "qdcp"];
+
 export function HomeScreen({ dispatch }: HomeScreenProps) {
-  const handleModeSelect = (mode: GameMode) => {
+  const [openId, setOpenId] = useState<GameId | null>(null);
+  const openGame = GAMES.find((g) => g.id === openId) ?? null;
+
+  const close = useCallback(() => setOpenId(null), []);
+  const play = (mode: GameMode) => {
     dispatch({ type: "SET_GAME_MODE", payload: { mode } });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 flex items-center justify-center p-3 sm:p-4">
-      <div className="max-w-2xl w-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 md:p-12">
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-800 mb-2 sm:mb-4">
-            Family Feud
-          </h1>
-          <p className="text-base sm:text-xl text-gray-600">
-            Scegli la modalità di gioco
-          </p>
-        </div>
+    <div className="min-h-dvh bg-[#131217] font-['Figtree'] text-[#F4F1EA] selection:bg-[#F4F1EA] selection:text-[#131217]">
+      <div className="mx-auto flex max-w-[1160px] flex-col gap-4 px-4 pt-4 pb-8 md:gap-6 md:px-6 md:pt-8">
+        <header className="flex min-h-11 items-center">
+          <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em] md:text-[40px]">Scegli il gioco</h1>
+        </header>
 
-        <div className="grid gap-4 sm:gap-6 md:gap-8">
-          {/* Modalità con Master */}
-          <button
-            onClick={() => handleModeSelect("master")}
-            className="group relative bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-left flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Con Master</h2>
-                <p className="text-blue-100 text-sm md:text-base">
-                  Un conduttore gestisce il gioco dal drawer laterale, rivela le risposte e segna gli errori.
-                </p>
-              </div>
-              <div className="text-4xl sm:text-5xl shrink-0">🎮</div>
-            </div>
-          </button>
-
-          {/* Modalità senza Master */}
-          <button
-            onClick={() => handleModeSelect("no-master")}
-            className="group relative bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-left flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Senza Master</h2>
-                <p className="text-green-100 text-sm md:text-base">
-                  Due giocatori si sfidano sullo stesso telefono. Le risposte vengono scritte e il matching è automatico.
-                </p>
-              </div>
-              <div className="text-4xl sm:text-5xl shrink-0">⚡</div>
-            </div>
-          </button>
-
-          {/* Modalità Rubo */}
-          <button
-            onClick={() => handleModeSelect("rubo")}
-            className="group relative bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-black text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-left flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Rubo</h2>
-                <p className="text-slate-300 text-sm md:text-base">
-                  Quiz a bluff condotto da te: rispondi o ruba la risposta all'avversario. Corretta +1, rubo riuscito +2, rubo fallito −1.
-                </p>
-              </div>
-              <div className="text-4xl sm:text-5xl shrink-0">🃏</div>
-            </div>
-          </button>
-
-          {/* Modalità Personaggio Misterioso */}
-          <button
-            onClick={() => handleModeSelect("mystery")}
-            className="group relative bg-gradient-to-r from-indigo-500 to-violet-700 hover:from-indigo-600 hover:to-violet-800 text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-left flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Personaggio Misterioso</h2>
-                <p className="text-indigo-100 text-sm md:text-base">
-                  Tu dai gli indizi, dal più difficile al più facile. Chi indovina prima vince più punti: 10 con un solo indizio, 1 con dieci.
-                </p>
-              </div>
-              <div className="text-4xl sm:text-5xl shrink-0">🕵️</div>
-            </div>
-          </button>
-          {/* Modalità Più alto o più basso */}
-          <button
-            onClick={() => handleModeSelect("higher-lower")}
-            className="group relative bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-left flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
-                  Più alto o più basso
-                </h2>
-                <p className="text-amber-100 text-sm md:text-base">
-                  Due squadre, una sola catena. A turno indovinate quale numero è più
-                  grande: chi sbaglia la spezza e regala il punto.
-                </p>
-              </div>
-              <div className="text-4xl sm:text-5xl shrink-0">📈</div>
-            </div>
-          </button>
-          {/* Modalità Indovina il Numero */}
-          <button
-            onClick={() => handleModeSelect("guess-number")}
-            className="group relative bg-gradient-to-r from-teal-600 to-cyan-700 hover:from-teal-700 hover:to-cyan-800 text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-left flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
-                  Indovina il Numero
-                </h2>
-                <p className="text-teal-100 text-sm md:text-base">
-                  Domande a cifre: rispondete a voce, poi svelate la risposta esatta un clic alla volta.
-                </p>
-              </div>
-              <div className="text-4xl sm:text-5xl shrink-0">🔢</div>
-            </div>
-          </button>
-
-          {/* Modalità TOP 100 */}
-          <button
-            onClick={() => handleModeSelect("top100")}
-            className="group relative bg-[#0A0F24] hover:bg-[#141A38] text-white rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300 ring-2 ring-[#F5B83D]"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-left flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 text-[#F5B83D]">TOP 100</h2>
-                <p className="text-[#C9CFEA] text-sm md:text-base">
-                  Da 2 a 6 squadre. Dai una classifica, loro nominano chi c'è dentro: più è in alto, più punti. Fuori dalla top, zero.
-                </p>
-              </div>
-              <div className="text-4xl sm:text-5xl shrink-0">🏆</div>
-            </div>
-          </button>
-
-          {/* Modalità Asta Folle */}
-          <button
-            onClick={() => handleModeSelect("asta")}
-            className="group relative bg-[#15100D] hover:bg-[#221A15] text-[#F4EBDD] rounded-2xl p-5 sm:p-8 shadow-lg hover:shadow-2xl transform active:scale-[0.98] md:hover:scale-[1.03] transition-all duration-300 ring-2 ring-[#E8411F]"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-left flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 text-[#E8411F]">Asta Folle</h2>
-                <p className="text-[#D9CCBD] text-sm md:text-base">
-                  Da 2 a 6 squadre, 30 crediti e 3 lotti a testa. Rilanciate a voce: i valori veri si scoprono solo alla fine.
-                </p>
-              </div>
-              <div className="text-4xl sm:text-5xl shrink-0">🔨</div>
-            </div>
-          </button>
-        </div>
-
-        <div className="mt-6 sm:mt-8 text-center text-gray-500 text-xs sm:text-sm">
-          Scegli la modalità che preferisci per iniziare il gioco!
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] md:auto-rows-[240px] md:gap-4 md:[grid-auto-flow:dense]">
+          {ORDER.map((id) => {
+            const game = GAMES.find((g) => g.id === id)!;
+            return (
+              <button
+                key={id}
+                type="button"
+                aria-label={game.name}
+                onClick={() => setOpenId(id)}
+                className={`home-cover block rounded-[18px] p-0 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#F4F1EA] ${COVER_LAYOUT[id]}`}
+              >
+                <GameCover id={id} />
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {openGame && <GameSheet key={openGame.id} game={openGame} onClose={close} onPlay={play} />}
     </div>
   );
 }

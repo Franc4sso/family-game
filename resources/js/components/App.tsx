@@ -1,6 +1,7 @@
 import React from "react";
 import { HomeScreen } from "./HomeScreen";
 import { TeamSetup } from "./setup/TeamSetup";
+import { FeudTeamSetup } from "./setup/FeudTeamSetup";
 import { RoundSetup } from "./setup/RoundSetup";
 import { FaceOff } from "./setup/FaceOff";
 import { FaceOffNoMaster } from "./setup/FaceOffNoMaster";
@@ -16,6 +17,7 @@ import { HigherLowerScreen } from "./game/HigherLowerScreen";
 import { GuessNumberScreen } from "./game/GuessNumberScreen";
 import { Top100Screen } from "./top100/Top100Screen";
 import { AstaGame } from "./asta/AstaGame";
+import { QdcpScreen } from "./qdcp/QdcpScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -32,37 +34,41 @@ export function App() {
     return <GuessNumberScreen dispatch={dispatch} />;
   }
 
-  // TOP 100 e Asta Folle hanno squadre proprie (da 2 a 6), quindi saltano il setup a due squadre
+  // TOP 100, Asta Folle e QDCP hanno squadre proprie (da 2 a 6), quindi saltano il setup a due squadre
   if (state.gameMode === "top100") {
     return <Top100Screen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
   }
   if (state.gameMode === "asta") {
     return <AstaGame gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
   }
-
-  // Setup squadre se non configurate
-  if (!state.teamA.name || !state.teamB.name) {
-    return <TeamSetup dispatch={dispatch} onBack={() => dispatch({ type: "CLEAR_MODE" })} />;
+  if (state.gameMode === "qdcp") {
+    return <QdcpScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
   }
 
-  // ========== MODALITÀ RUBO ==========
+  // Personaggio Misterioso ha da 2 a 6 squadre: le nomina nella sua schermata iniziale
+  if (state.gameMode === "mystery") {
+    if (!state.mystery) {
+      return <MysterySetup dispatch={dispatch} />;
+    }
+    return <MysteryScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
+  }
+
+  // Rubo nomina i suoi due sfidanti nella sua schermata iniziale, insieme alla categoria
   if (state.gameMode === "rubo") {
     if (!state.rubo) {
       return <RuboSetup teamA={state.teamA} teamB={state.teamB} dispatch={dispatch} />;
     }
-    return (
-      <RuboScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />
-    );
+    return <RuboScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
   }
 
-  // ========== MODALITÀ PERSONAGGIO MISTERIOSO ==========
-  if (state.gameMode === "mystery") {
-    if (!state.mystery) {
-      return <MysterySetup teamA={state.teamA} teamB={state.teamB} dispatch={dispatch} />;
+  // Setup squadre se non configurate
+  if (!state.teamA.name || !state.teamB.name) {
+    const onBack = () => dispatch({ type: "CLEAR_MODE" });
+    // Family Feud ha la sua schermata squadre; le altre sfide a due squadre usano quella comune
+    if (state.gameMode === "master" || state.gameMode === "no-master") {
+      return <FeudTeamSetup dispatch={dispatch} onBack={onBack} />;
     }
-    return (
-      <MysteryScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />
-    );
+    return <TeamSetup dispatch={dispatch} onBack={onBack} />;
   }
 
   // ========== MODALITÀ PIÙ ALTO O PIÙ BASSO ==========

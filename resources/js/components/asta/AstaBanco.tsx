@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { AstaScreen, BancoTabs, IconHammer, MonoLabel, Paddle, btnGhost, btnRed } from "./parts";
-import { categoryLabel, lotLabel } from "./AstaBoard";
+import { AstaConfirm, AstaScreen, IconBack, IconDots, IconHammer, Paddle, btnRed } from "./parts";
+import { categoryLabel, lotNumber } from "./AstaBoard";
 import { ASTA_MIN_BID, astaCanPass, astaMaxBid, formatEuro } from "@/services/astaService";
 import type { AstaState } from "@/types/game.types";
 import type { GameAction } from "@/types/actions.types";
@@ -14,13 +14,15 @@ interface AstaBancoProps {
 }
 
 /**
- * Banco del banditore: l'asta si fa a voce, qui si registra solo chi si è
- * aggiudicato il lotto e a quanto.
+ * Banco del banditore: l'asta si fa a voce, qui ci sono gli indizi da dare
+ * e si registra chi si è aggiudicato il lotto e a quanto.
  */
 export function AstaBanco({ state, dispatch, onUndo, canUndo, onShowBoard }: AstaBancoProps) {
   const [team, setTeam] = useState<number | null>(null);
   const [digits, setDigits] = useState("");
   const [showValue, setShowValue] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirm, setConfirm] = useState<"pass" | "exit" | null>(null);
 
   const lot = state.lots[state.current];
   const price = Number(digits || 0);
@@ -28,60 +30,100 @@ export function AstaBanco({ state, dispatch, onUndo, canUndo, onShowBoard }: Ast
   const tooHigh = team !== null && price > max;
   const valid = team !== null && price >= ASTA_MIN_BID && !tooHigh;
   const canPass = astaCanPass(state);
-  const moreClues = state.cluesShown < lot.clues.length;
 
-  const press = (key: string) => {
-    if (key === "C") return setDigits("");
-    if (key === "⌫") return setDigits((d) => d.slice(0, -1));
-    setDigits((d) => (d === "0" ? key : (d + key).slice(0, 2)));
-  };
-  const nudge = (delta: number) => setDigits(String(Math.max(0, price + delta)));
+  const range =
+    team === null
+      ? "PRIMA LA SQUADRA"
+      : tooHigh
+        ? `MASSIMO ${max} PER ${state.teams[team].name.toUpperCase()}`
+        : `DA ${ASTA_MIN_BID} A ${max} ${max === 1 ? "CREDITO" : "CREDITI"}`;
 
   return (
     <AstaScreen>
-      <BancoTabs
-        active="banco"
-        onBoard={onShowBoard}
-        onBanco={() => {}}
-        menu={[
-          { label: "Annulla ultima azione", onClick: onUndo, disabled: !canUndo },
-          {
-            label: "Esci dall'asta",
-            danger: true,
-            onClick: () => confirm("Uscire? L'asta in corso andrà persa.") && dispatch({ type: "CLEAR_MODE" }),
-          },
-        ]}
-      />
-
-      <div className="flex items-center gap-2.5 rounded-[18px] border border-asta-line bg-asta-surface p-2">
-        <img src={lot.image} alt="" className="h-14 w-14 shrink-0 rounded-xl bg-asta-photo object-contain" />
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <MonoLabel>
-            {lotLabel(state, state.current)} · {categoryLabel(lot.category).toUpperCase()}
-          </MonoLabel>
-          <span className="truncate text-[15px] font-extrabold leading-tight">{lot.name}</span>
-          <button
-            type="button"
-            onClick={() => setShowValue((v) => !v)}
-            className="self-start font-asta-mono text-[11px] font-bold text-asta-mustard underline decoration-dashed underline-offset-2"
-          >
-            {showValue ? `VALE ${formatEuro(lot.value)} · NASCONDI` : "VALORE SEGRETO: TOCCA PER VEDERE"}
-          </button>
-        </span>
-      </div>
-
-      {moreClues && (
+      <header className="relative flex h-11 items-center justify-between">
         <button
           type="button"
-          onClick={() => dispatch({ type: "ASTA_SHOW_CLUE" })}
-          className="h-11 rounded-full border-[1.5px] border-dashed border-asta-mustard text-sm font-extrabold text-asta-mustard active:scale-[0.98]"
+          onClick={onShowBoard}
+          className="asta-press flex h-11 items-center gap-1.5 rounded-full border-[1.5px] border-asta-line bg-asta-surface pr-4 pl-2.5 text-sm font-extrabold"
         >
-          Svela la nota {String(state.cluesShown + 1).padStart(2, "0")}: “{lot.clues[state.cluesShown]}”
+          <IconBack />
+          Sala
         </button>
+        <span className="font-asta-mono text-[11px] font-bold text-asta-mustard">BANCO · SOLO TU</span>
+        <button
+          type="button"
+          aria-label="Altre opzioni"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          className="asta-press flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-asta-line bg-asta-surface"
+        >
+          <IconDots />
+        </button>
+        {menuOpen && (
+          <div className="absolute top-12 right-0 z-30 w-56 rounded-2xl border-[1.5px] border-asta-line bg-asta-surface p-1.5 shadow-2xl">
+            <button
+              type="button"
+              disabled={!canUndo}
+              onClick={() => {
+                setMenuOpen(false);
+                onUndo();
+              }}
+              className="h-11 w-full rounded-xl px-3 text-left text-sm font-bold active:bg-asta-line disabled:opacity-40"
+            >
+              Annulla l’ultima mossa
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                setConfirm("exit");
+              }}
+              className="h-11 w-full rounded-xl px-3 text-left text-sm font-bold text-[#FF9A86] active:bg-asta-line"
+            >
+              Esci dall’asta
+            </button>
+          </div>
+        )}
+      </header>
+
+      <div className="flex items-center gap-2.5 rounded-[18px] bg-asta-surface p-2">
+        <img src={lot.image} alt="" className="h-14 w-14 shrink-0 rounded-xl bg-asta-photo object-contain" />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="font-asta-mono text-[11px] font-bold text-asta-muted">
+            LOTTO {lotNumber(state.current)} · {categoryLabel(lot.category).toUpperCase()}
+          </span>
+          <span className="truncate text-[15px] leading-tight font-extrabold">{lot.name}</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setShowValue((v) => !v)}
+          aria-label={showValue ? "Nascondi il valore segreto" : "Mostra il valore segreto"}
+          aria-pressed={showValue}
+          className={`asta-press flex h-11 min-w-[92px] shrink-0 flex-col items-start justify-center rounded-l-xl rounded-r-[22px] px-3 leading-[1.05] text-asta-ink transition-colors ${
+            showValue ? "bg-asta-mustard" : "bg-asta-cream"
+          }`}
+        >
+          <span className="font-asta-mono text-[9px] font-bold text-asta-brown">VALORE</span>
+          <span className="text-[15px] font-extrabold">{showValue ? formatEuro(lot.value) : "Tocca"}</span>
+        </button>
+      </div>
+
+      {lot.clues.length > 0 && (
+        <section className="flex flex-col gap-1.5 rounded-2xl px-3.5 pt-2.5 pb-3 shadow-[inset_0_0_0_1.5px_var(--color-asta-line)]">
+          <span className="font-asta-mono text-[11px] font-bold text-asta-mustard">INDIZI DA DARE A VOCE</span>
+          <ol className="m-0 flex list-none flex-col gap-1 p-0">
+            {lot.clues.map((clue, i) => (
+              <li key={i} className="flex gap-2.5 text-[15px] leading-snug font-bold">
+                <span className="shrink-0 font-asta-mono text-asta-mustard">{lotNumber(i)}</span>
+                {clue}
+              </li>
+            ))}
+          </ol>
+        </section>
       )}
 
-      <h2 className="text-lg font-extrabold">Chi se l'è aggiudicato?</h2>
-      <div className={`grid gap-2 ${state.teams.length > 4 ? "grid-cols-3" : "grid-cols-4"}`}>
+      <h2 className="m-0 mt-0.5 text-lg font-extrabold">Chi se l’è aggiudicato?</h2>
+      <div className="grid grid-cols-2 gap-2">
         {state.teams.map((t, i) => {
           const teamMax = astaMaxBid(state, i);
           const selected = team === i;
@@ -92,62 +134,49 @@ export function AstaBanco({ state, dispatch, onUndo, canUndo, onShowBoard }: Ast
               disabled={teamMax === 0}
               aria-pressed={selected}
               onClick={() => setTeam(i)}
-              className={`flex flex-col items-center gap-1 rounded-[18px] px-1 py-2 active:scale-95 disabled:opacity-35 ${
-                selected ? "bg-asta-cream text-asta-ink" : "border border-asta-line bg-asta-surface"
+              className={`asta-press flex h-16 items-center gap-2.5 rounded-full pr-3 pl-2 text-left transition-colors disabled:opacity-35 ${
+                selected ? "bg-asta-cream text-asta-ink" : "bg-asta-surface"
               }`}
             >
-              <Paddle team={t} index={i} size={44} ring={selected} />
-              <span className="max-w-full truncate text-[13px] font-extrabold">{t.name}</span>
-              <span className={`font-asta-mono text-[10px] font-bold ${selected ? "text-asta-brown" : "text-asta-muted"}`}>
-                {teamMax === 0 ? "COMPLETA" : `MAX ${teamMax}`}
+              <Paddle team={t} index={i} size={48} ring={selected} className={`asta-lift ${selected ? "-translate-y-1" : ""}`} />
+              <span className="flex min-w-0 flex-col gap-px">
+                <span className="truncate text-base font-extrabold">{t.name}</span>
+                <span className={`font-asta-mono text-[11px] font-bold ${selected ? "text-asta-brown" : "text-asta-muted"}`}>
+                  {teamMax === 0 ? "COMPLETA" : `MAX ${teamMax}`}
+                </span>
               </span>
             </button>
           );
         })}
       </div>
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-extrabold">A quanto?</h2>
-        <MonoLabel>{team === null ? "PRIMA SCEGLI LA SQUADRA" : `DA ${ASTA_MIN_BID} A ${max} CREDITI`}</MonoLabel>
-      </div>
-      <div className="flex items-center gap-2">
-        <button type="button" aria-label="Un credito in meno" onClick={() => nudge(-1)} className={`${btnGhost} h-[72px] w-14 text-2xl`}>
-          −1
-        </button>
-        <output
-          aria-live="polite"
-          className={`flex h-[72px] flex-1 items-center justify-center gap-2 rounded-[20px] ${tooHigh ? "bg-[#3A1810] text-[#FFB3A3]" : "bg-asta-cream text-asta-ink"}`}
-        >
-          <span className="text-[50px] font-extrabold tracking-[-0.03em]">{price}</span>
-          <span className={`font-asta-mono text-xs font-bold ${tooHigh ? "" : "text-asta-brown"}`}>
-            {price === 1 ? "CREDITO" : "CREDITI"}
-          </span>
-        </output>
-        <button type="button" aria-label="Un credito in più" onClick={() => nudge(1)} className={`${btnGhost} h-[72px] w-14 text-2xl`}>
-          +1
-        </button>
-      </div>
-      {tooHigh && team !== null && (
-        <p role="alert" className="-mt-1.5 text-center text-sm font-bold text-[#FFB3A3]">
-          {state.teams[team].name} può arrivare al massimo a {max}: deve tenere 1 credito per ogni lotto che le manca.
-        </p>
-      )}
+      <label htmlFor="asta-price" className="mt-0.5 flex items-baseline justify-between gap-3">
+        <span className="text-lg font-extrabold">A quanto?</span>
+        <span className={`truncate font-asta-mono text-[11px] font-bold ${tooHigh ? "text-asta-danger" : "text-asta-muted"}`}>{range}</span>
+      </label>
+      <span
+        className={`flex h-[60px] items-center gap-2.5 rounded-2xl px-[18px] transition-colors ${
+          tooHigh ? "bg-asta-danger-bg text-asta-danger ring-2 ring-[#FF8A70]" : "bg-asta-cream text-asta-ink focus-within:ring-[3px] focus-within:ring-asta-mustard"
+        }`}
+      >
+        <input
+          id="asta-price"
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          enterKeyHint="done"
+          autoComplete="off"
+          placeholder="0"
+          value={digits}
+          onChange={(e) => setDigits(e.target.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 2))}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+          aria-invalid={tooHigh}
+          className="min-w-0 flex-1 bg-transparent p-0 text-[32px] font-extrabold tracking-[-0.03em] placeholder:text-current placeholder:opacity-30 focus:outline-none"
+        />
+        <span className="font-asta-mono text-xs font-bold">{price === 1 ? "CREDITO" : "CREDITI"}</span>
+      </span>
 
-      <div className="grid grid-cols-3 gap-1.5">
-        {["1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "0", "⌫"].map((k) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => press(k)}
-            aria-label={k === "C" ? "Azzera" : k === "⌫" ? "Cancella una cifra" : k}
-            className="h-12 rounded-[14px] border border-asta-line bg-asta-surface text-xl font-extrabold active:scale-95 active:bg-asta-line"
-          >
-            {k}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-auto flex flex-col gap-2 pt-1">
+      <div className="mt-auto flex flex-col gap-1.5 pt-1">
         <button
           type="button"
           disabled={!valid}
@@ -158,7 +187,7 @@ export function AstaBanco({ state, dispatch, onUndo, canUndo, onShowBoard }: Ast
           className={`${btnRed} h-16`}
         >
           <IconHammer size={26} />
-          <span className="flex flex-col items-start">
+          <span className="flex flex-col items-start leading-[1.1]">
             <span className="text-[19px] font-extrabold">Batti il martello</span>
             <span className="font-asta-mono text-[11px] font-bold text-asta-red-soft">
               {valid && team !== null ? `LOTTO A ${state.teams[team].name.toUpperCase()} PER ${price}` : "SCEGLI SQUADRA E PREZZO"}
@@ -168,12 +197,34 @@ export function AstaBanco({ state, dispatch, onUndo, canUndo, onShowBoard }: Ast
         <button
           type="button"
           disabled={!canPass}
-          onClick={() => confirm("Nessuno lo vuole? Il lotto resta invenduto.") && dispatch({ type: "ASTA_PASS" })}
-          className={`${btnGhost} h-11 text-sm`}
+          onClick={() => setConfirm("pass")}
+          className="asta-press h-11 rounded-full text-sm font-bold text-asta-muted disabled:opacity-60"
         >
           {canPass ? "Nessuno lo vuole · passa al prossimo" : "Ogni lotto rimasto va venduto"}
         </button>
       </div>
+
+      {confirm === "pass" && (
+        <AstaConfirm
+          title="Nessuno lo vuole?"
+          text="Il lotto resta invenduto e si passa al prossimo."
+          confirmLabel="Passa"
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => {
+            setConfirm(null);
+            dispatch({ type: "ASTA_PASS" });
+          }}
+        />
+      )}
+      {confirm === "exit" && (
+        <AstaConfirm
+          title="Uscire dall’asta?"
+          text="L’asta in corso andrà persa."
+          confirmLabel="Esci"
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => dispatch({ type: "CLEAR_MODE" })}
+        />
+      )}
     </AstaScreen>
   );
 }

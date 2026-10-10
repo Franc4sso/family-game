@@ -1,5 +1,5 @@
 import React from "react";
-import { RankBadge } from "../master/parts";
+import { RankOval, TEAM } from "../feud/parts";
 import type { Team, Round, Answer } from "@/types/game.types";
 import type { GameAction } from "@/types";
 
@@ -16,6 +16,7 @@ export function PlayOrPass({ teamA, teamB, currentRound, dispatch }: PlayOrPassP
 
   const winningTeam = winner === "A" ? teamA : teamB;
   const losingTeam = winner === "A" ? teamB : teamA;
+  const isA = winner === "A";
 
   // Le risposte del face-off sono le uniche rivelate: la più alta è del vincitore
   const [best, other] = currentRound.answers
@@ -23,38 +24,37 @@ export function PlayOrPass({ teamA, teamB, currentRound, dispatch }: PlayOrPassP
     .sort((a, b) => a.rank - b.rank);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-[#05081A]/85 p-3 font-ui text-ff-text backdrop-blur-sm sm:items-center">
-      <div role="dialog" aria-modal="true" aria-labelledby="play-or-pass-title" className="flex w-full max-w-md flex-col gap-3.5 rounded-[26px] border border-ff-line bg-ff-bg p-5">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <span className="flex h-[26px] items-center rounded-full bg-ff-gold px-3 text-[11px] font-extrabold tracking-[0.12em] text-ff-gold-ink">
-            FACE-OFF VINTO
-          </span>
-          <h2 id="play-or-pass-title" className="font-display text-[30px] uppercase leading-[1.05] text-ff-gold break-words">
-            {winningTeam.name}
-          </h2>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-feud-navy/70 font-feud-ui sm:items-center sm:p-3">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="play-or-pass-title"
+        className={`feud-up flex w-full max-w-md flex-col gap-3.5 rounded-t-[28px] px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:rounded-[28px] ${TEAM[winner].solid}`}
+      >
+        <span className={`text-sm font-extrabold ${TEAM[winner].soft}`}>Face-off vinto da</span>
+        <h2 id="play-or-pass-title" className="m-0 -mt-2 font-feud text-[56px] leading-[0.85] font-black break-words uppercase">
+          {winningTeam.name}
+        </h2>
 
         <div className="flex flex-col gap-1.5">
-          <FaceOffAnswer answer={best} teamName={winningTeam.name} winner />
-          <FaceOffAnswer answer={other} teamName={losingTeam.name} />
+          <FaceOffAnswer answer={best} teamName={winningTeam.name} winner isA={isA} />
+          <FaceOffAnswer answer={other} teamName={losingTeam.name} isA={isA} />
         </div>
 
-        <p className="text-center text-base font-bold">
-          <span className="text-ff-gold">{winningTeam.name}</span>, giocate o passate?
-        </p>
+        <p className="m-0 text-lg font-extrabold">Giocate o passate?</p>
 
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => dispatch({ type: "CHOOSE_PLAY" })}
-            className="h-[60px] rounded-[18px] bg-ff-gold text-[17px] font-extrabold text-ff-gold-ink active:scale-95"
+            className={`feud-press h-[60px] rounded-[18px] text-lg font-extrabold ${isA ? "bg-feud-ink text-feud-yellow" : "bg-feud-coral-ink text-feud-coral"}`}
           >
             Giochiamo
           </button>
           <button
             type="button"
             onClick={() => dispatch({ type: "CHOOSE_PASS" })}
-            className="h-[60px] rounded-[18px] border border-ff-line bg-ff-surface text-[17px] font-extrabold active:scale-95"
+            className={`feud-press h-[60px] rounded-[18px] border-2 text-lg font-extrabold ${isA ? "border-feud-ink" : "border-feud-coral-ink"}`}
           >
             Passiamo
           </button>
@@ -64,23 +64,33 @@ export function PlayOrPass({ teamA, teamB, currentRound, dispatch }: PlayOrPassP
   );
 }
 
-function FaceOffAnswer({ answer, teamName, winner = false }: { answer?: Answer; teamName: string; winner?: boolean }) {
+function FaceOffAnswer({
+  answer,
+  teamName,
+  winner = false,
+  isA,
+}: {
+  answer?: Answer;
+  teamName: string;
+  winner?: boolean;
+  isA: boolean;
+}) {
+  const dark = isA ? "bg-feud-ink text-white" : "bg-feud-coral-ink text-white";
+  const ovalOn = isA ? "bg-feud-yellow text-feud-ink" : "bg-feud-coral text-feud-coral-ink";
   return (
     <div
-      className={`flex min-h-[58px] items-center gap-3 rounded-[14px] py-2 pl-2 pr-3.5 ${
-        winner ? "bg-ff-text text-ff-bg" : "border border-ff-line-soft bg-ff-surface text-ff-muted"
+      className={`flex min-h-[58px] items-center gap-3 rounded-[14px] py-2 pr-3.5 pl-1.5 ${
+        winner ? dark : `border-2 ${isA ? "border-feud-ink/25" : "border-feud-coral-ink/25"}`
       }`}
     >
       {answer ? (
-        <RankBadge rank={answer.rank} className={winner ? "bg-ff-bg text-ff-gold" : "bg-ff-surface-2 text-ff-muted"} />
+        <RankOval rank={answer.rank} className={winner ? ovalOn : isA ? "bg-feud-ink/10" : "bg-feud-coral-ink/10"} />
       ) : (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-ff-surface-2 text-ff-muted">–</span>
+        <RankOval rank={9} className={isA ? "bg-feud-ink/10" : "bg-feud-coral-ink/10"} />
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className={`truncate text-[11px] font-extrabold uppercase tracking-[0.1em] ${winner ? "text-ff-gold-ink-soft" : ""}`}>
-          {teamName}
-        </span>
-        <span className={`text-base font-extrabold leading-tight ${winner ? "" : "text-ff-text"}`}>
+        <span className="truncate text-xs font-extrabold opacity-75">{teamName}</span>
+        <span className="font-feud text-[22px] leading-none font-extrabold uppercase">
           {answer ? answer.value : "Nessuna risposta sul tabellone"}
         </span>
       </div>

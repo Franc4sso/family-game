@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BackButton, MasterScreen, RankBadge } from "../master/parts";
+import { FeudBack, FeudScreen, RankOval, TEAM, type Side } from "../feud/parts";
 import type { Team, Round } from "@/types/game.types";
 import type { GameAction } from "@/types";
 
@@ -11,8 +11,6 @@ interface FaceOffProps {
   onBack: () => void;
 }
 
-type Side = "A" | "B";
-
 interface Pick {
   index: number | null;
   custom: string;
@@ -20,11 +18,6 @@ interface Pick {
 }
 
 const EMPTY: Pick = { index: null, custom: "", none: false };
-
-const SIDE_STYLE = {
-  A: { pick: "bg-[#4C8DFF] text-[#06122E]", card: "bg-ff-team-a ring-[#2A3D78]", label: "text-[#A9C4FF]" },
-  B: { pick: "bg-ff-orange text-ff-orange-ink", card: "bg-ff-team-b ring-[#4A2C22]", label: "text-[#FFB08C]" },
-};
 
 export function FaceOff({ teamA, teamB, currentRound, dispatch, onBack }: FaceOffProps) {
   const [picks, setPicks] = useState<Record<Side, Pick>>({ A: EMPTY, B: EMPTY });
@@ -71,42 +64,46 @@ export function FaceOff({ teamA, teamB, currentRound, dispatch, onBack }: FaceOf
   };
 
   return (
-    <MasterScreen>
-      <BackButton onClick={onBack} />
-      <div className="flex flex-col gap-1.5 rounded-[22px] bg-ff-gold px-[18px] pb-[18px] pt-4 text-ff-gold-ink">
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ff-gold-ink-soft">Face-off</span>
-        <h1 className="font-display text-[23px] uppercase leading-[1.12]">{currentRound.category}</h1>
+    <FeudScreen>
+      <div className="flex h-11 items-center gap-3">
+        <FeudBack onClick={onBack} />
+        <span className="text-sm font-extrabold text-feud-muted">Solo il master vede le risposte</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5">
-        {(["A", "B"] as Side[]).map((side) => (
-          <div key={side} className={`flex flex-col gap-0.5 rounded-[16px] px-3.5 py-2.5 ring-1 ${SIDE_STYLE[side].card}`}>
-            <span className={`truncate text-[11px] font-extrabold uppercase tracking-[0.1em] ${SIDE_STYLE[side].label}`}>
-              {names[side]}
-            </span>
-            <span className={`truncate text-sm font-bold ${hasPick(picks[side]) ? "text-ff-text" : "text-ff-muted"}`}>
-              {summary(side)}
-            </span>
-          </div>
-        ))}
+      <section className="flex flex-col gap-1.5">
+        <h1 className="m-0 font-feud text-[64px] leading-[0.82] font-black text-feud-yellow uppercase">Face-off</h1>
+        <p className="m-0 font-feud text-[28px] leading-[0.95] font-extrabold text-balance uppercase">{currentRound.category}</p>
+      </section>
+
+      <div className="grid grid-cols-2 gap-2">
+        {(["A", "B"] as Side[]).map((side) => {
+          const picked = hasPick(picks[side]);
+          return (
+            <div
+              key={side}
+              className={`flex min-h-[64px] flex-col justify-center gap-0.5 rounded-2xl px-3.5 py-2 ${
+                picked ? TEAM[side].solid : "border-2 border-white/25"
+              }`}
+            >
+              <span className={`truncate text-xs font-extrabold ${picked ? TEAM[side].soft : TEAM[side].outlineText}`}>{names[side]}</span>
+              <span className={`truncate text-[15px] font-extrabold ${picked ? "" : "text-feud-muted"}`}>{summary(side)}</span>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-[0.12em] text-ff-muted">
-        <span>Chi ha detto cosa?</span>
-      </div>
+      <span className="text-[13px] font-bold text-feud-muted">Chi ha detto cosa?</span>
 
-      <ul className="flex flex-col gap-1.5">
+      <ol className="flex flex-col gap-1.5">
         {currentRound.answers.map((answer, index) => {
           const owner: Side | null = picks.A.index === index ? "A" : picks.B.index === index ? "B" : null;
           return (
             <li
               key={index}
-              className={`flex min-h-[54px] items-center gap-2.5 rounded-[14px] border py-1.5 pl-2 pr-1.5 ${
-                owner ? "border-ff-gold bg-ff-surface-2" : "border-ff-line-soft bg-ff-surface"
-              }`}
+              className={`flex min-h-[52px] items-center gap-2 rounded-xl py-1.5 pr-1.5 pl-1 ${owner ? "bg-white text-feud-ink" : "bg-feud-navy"}`}
             >
-              <RankBadge rank={answer.rank} className="bg-ff-surface-2 text-ff-gold" />
-              <span className="min-w-0 flex-1 text-[15px] font-bold leading-tight">{answer.value}</span>
+              <RankOval rank={answer.rank} className={owner ? "bg-feud-ink text-feud-yellow" : "bg-feud-yellow text-feud-ink"} />
+              <span className="min-w-0 flex-1 text-[15px] leading-tight font-bold">{answer.value}</span>
               {(["A", "B"] as Side[]).map((side) => {
                 const mine = owner === side;
                 const taken = owner !== null && !mine;
@@ -118,8 +115,8 @@ export function FaceOff({ teamA, teamB, currentRound, dispatch, onBack }: FaceOf
                     aria-pressed={mine}
                     aria-label={`${answer.value}: risposta di ${names[side]}`}
                     onClick={() => pickAnswer(side, index)}
-                    className={`h-10 w-[68px] shrink-0 truncate rounded-[10px] px-1.5 text-xs font-extrabold active:scale-95 disabled:opacity-25 ${
-                      mine ? SIDE_STYLE[side].pick : "border border-ff-line text-ff-muted"
+                    className={`feud-press h-10 w-[68px] shrink-0 truncate rounded-[10px] px-1.5 text-xs font-extrabold disabled:opacity-25 ${
+                      mine ? TEAM[side].solid : owner ? "border-2 border-feud-ink/20" : "border-2 border-white/25 text-feud-muted"
                     }`}
                   >
                     {names[side]}
@@ -129,27 +126,29 @@ export function FaceOff({ teamA, teamB, currentRound, dispatch, onBack }: FaceOf
             </li>
           );
         })}
-      </ul>
+      </ol>
 
       <div className="flex flex-col gap-2">
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-ff-muted">Risposta fuori dal tabellone</span>
+        <span className="text-[13px] font-bold text-feud-muted">Risposta fuori dal tabellone</span>
         {(["A", "B"] as Side[]).map((side) => (
           <div key={side} className="flex gap-2">
-            <label htmlFor={`custom-${side}`} className="sr-only">Altra risposta di {names[side]}</label>
+            <label htmlFor={`custom-${side}`} className="sr-only">
+              Altra risposta di {names[side]}
+            </label>
             <input
               id={`custom-${side}`}
               value={picks[side].custom}
               onChange={(e) => setCustom(side, e.target.value)}
               placeholder={`Altra risposta di ${names[side]}`}
               autoComplete="off"
-              className="h-12 min-w-0 flex-1 rounded-[14px] border border-ff-line bg-ff-surface px-4 text-[15px] font-semibold text-ff-text placeholder:text-ff-muted focus:border-ff-gold focus:outline-none"
+              className="h-12 min-w-0 flex-1 rounded-[14px] bg-feud-navy px-4 text-base font-semibold text-white placeholder:text-feud-muted-2 focus:ring-2 focus:ring-white focus:outline-none"
             />
             <button
               type="button"
               aria-pressed={picks[side].none}
               onClick={() => toggleNone(side)}
-              className={`h-12 shrink-0 rounded-[14px] px-3.5 text-sm font-extrabold active:scale-95 ${
-                picks[side].none ? SIDE_STYLE[side].pick : "border border-ff-line text-ff-muted"
+              className={`feud-press h-12 shrink-0 rounded-[14px] px-3.5 text-sm font-extrabold ${
+                picks[side].none ? TEAM[side].solid : "border-2 border-white/25 text-feud-muted"
               }`}
             >
               Nessuna
@@ -158,16 +157,16 @@ export function FaceOff({ teamA, teamB, currentRound, dispatch, onBack }: FaceOf
         ))}
       </div>
 
-      <div className="sticky bottom-0 mt-auto bg-ff-bg pb-1 pt-2">
+      <div className="sticky bottom-0 mt-auto bg-feud-blue pt-2 pb-1">
         <button
           type="button"
           disabled={!hasPick(picks.A) || !hasPick(picks.B)}
           onClick={handleReveal}
-          className="h-[60px] w-full rounded-[18px] bg-ff-gold text-[17px] font-extrabold text-ff-gold-ink active:scale-[0.98] disabled:bg-ff-surface disabled:text-ff-muted"
+          className="feud-press h-[60px] w-full rounded-[18px] bg-white text-lg font-extrabold text-feud-ink disabled:bg-feud-navy disabled:text-feud-muted-2"
         >
           Rivela le risposte
         </button>
       </div>
-    </MasterScreen>
+    </FeudScreen>
   );
 }

@@ -91,6 +91,114 @@ body {
     --color-asta-mustard: #FFC233;
     --color-asta-green: #3DDC97;
     --color-asta-green-ink: #0E2A1D;
+    /* La sala: le schermate per tutti sono pagine di catalogo stampato */
+    --color-asta-paper: #F4EBDD;
+    --color-asta-paper-2: #FBF6EE;
+    --color-asta-paper-line: #D9CCBA;
+    --color-asta-paper-track: #E6DAC8;
+    --color-asta-paper-dash: #B9A894;
+    --color-asta-paper-faint: #8C7B6C;
+    --color-asta-danger-bg: #3A1810;
+    --color-asta-danger: #FFB3A3;
+
+    /* Quando, Dove, Come, Perché: verde bosco, lime, Anybody largo a scalini */
+    --font-qd: 'Anybody', 'Arial Black', sans-serif;
+    --font-qd-ui: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --color-qd-green: #0B3D26;
+    --color-qd-deep: #072A1A;
+    --color-qd-panel: #12502F;
+    --color-qd-line: #1E6B43;
+    --color-qd-dash: #2E7A50;
+    --color-qd-lime: #B8F28B;
+    --color-qd-lime-ink: #2E6B45;
+    --color-qd-muted: #A7D9B9;
+    --color-qd-dim: #6FA987;
+    --color-qd-faint: #4F8A68;
+    --color-qd-pale: #E3F5E8;
+
+    /* Indovina il Numero: turchese, tessere del contatore in Anton */
+    --font-gn: 'Anton', 'Arial Narrow', sans-serif;
+    --font-gn-ui: 'Barlow', ui-sans-serif, system-ui, sans-serif;
+    --color-gn-teal: #0E7C74;
+    --color-gn-deep: #0A5953;
+    --color-gn-flap: #127F76;
+    --color-gn-pale: #E8FFFB;
+    --color-gn-mint: #4FE0D0;
+    --color-gn-soft: #C2EFE9;
+    --color-gn-cap: #8FD9CF;
+    --color-gn-ink: #04312D;
+    --color-gn-line: #3BA79C;
+
+    /* Family Feud: studio blu cobalto, squadra A gialla, squadra B corallo */
+    --font-feud: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    --font-feud-ui: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    --color-feud-blue: #1D3BD1;
+    --color-feud-navy: #0E1A73;
+    --color-feud-deep: #0B1250;
+    --color-feud-panel: #141C66;
+    --color-feud-line: #3A47A6;
+    --color-feud-line-soft: #26307E;
+    --color-feud-muted: #C9D2FF;
+    --color-feud-muted-2: #AEB9F2;
+    --color-feud-yellow: #FFD23F;
+    --color-feud-ink: #14112E;
+    --color-feud-ink-soft: #5C4109;
+    --color-feud-coral: #FF6B4A;
+    --color-feud-coral-soft: #FF8A6E;
+    --color-feud-coral-pale: #FFD9D0;
+    --color-feud-coral-ink: #2A0A04;
+    --color-feud-coral-ink-soft: #6A1E0E;
+    --color-feud-red: #FF3B30;
+    --color-feud-burn: #FF8A80;
+
+    /* Personaggio Misterioso: viola notte, lilla, Abril Fatface */
+    --font-myst: 'Abril Fatface', Georgia, serif;
+    --font-myst-ui: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --color-myst-night: #1F0E52;
+    --color-myst-panel: #2D1870;
+    --color-myst-violet: #3D1E8C;
+    --color-myst-deep: #25106A;
+    --color-myst-line: #4A2E94;
+    --color-myst-line-2: #5B3FA8;
+    --color-myst-text: #F3E9FF;
+    --color-myst-muted: #CDBBF5;
+    --color-myst-lilac: #B79CFF;
+    --color-myst-ink: #1A0B45;
+    --color-myst-spent: #3A2580;
+    --color-myst-bar: #7C5CD6;
+
+    /* Rubo: tavolo rosso, carte crema e nere, Bowlby One */
+    --font-rubo: 'Bowlby One', 'Arial Black', sans-serif;
+    --font-rubo-ui: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    --color-rubo-red: #E5322D;
+    --color-rubo-ink: #120A08;
+    --color-rubo-cream: #FFF4E6;
+    --color-rubo-wine: #3A0805;
+    --color-rubo-gold: #FFD23F;
+    --color-rubo-coral: #FF8A80;
+    --color-rubo-ash: #9A8A80;
+    --color-rubo-taupe: #7A6A60;
+    --color-rubo-sand: #E8D9CC;
+    --color-rubo-line: #4A2A24;
+
+    /* TOP 100: hit parade, blu notte, oro, numeri in Unbounded */
+    --font-top: 'Unbounded', 'Arial Black', sans-serif;
+    --font-top-ui: 'Onest', ui-sans-serif, system-ui, sans-serif;
+    --color-top-night: #0A0F24;
+    --color-top-panel: #141B3A;
+    --color-top-panel-2: #1E2752;
+    --color-top-line: #2A3366;
+    --color-top-text: #F3F4FA;
+    --color-top-muted: #AEB6DA;
+    --color-top-dim: #56608C;
+    --color-top-spent: #3A3F5E;
+    --color-top-gold: #F5B83D;
+    --color-top-gold-ink: #1A1305;
+    --color-top-gold-soft: #5C4410;
+    --color-top-gold-bg: #2A2310;
+    --color-top-gold-text: #E6D9B8;
+    --color-top-red: #FF4D5E;
+    --color-top-red-soft: #FF8A94;
 
     /* Drawer */
     --drawer-width: 85vw;            /* 85% viewport width */
@@ -190,4 +298,238 @@ body {
 @keyframes pulse-glow {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.75; }
+}
+
+/* Quando, Dove, Come, Perché: comparsa dell'indizio e della soluzione */
+@keyframes qdcp-pop {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+
+.qdcp-pop {
+    animation: qdcp-pop 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .qdcp-pop { animation: none; }
+}
+
+/* Home: copertine dei giochi e scheda dal basso */
+.home-cover,
+.home-press {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.home-cover:active { transform: scale(0.96); }
+.home-press:active { transform: scale(0.97); }
+
+@media (hover: hover) and (pointer: fine) {
+    .home-cover:hover { transform: translateY(-3px) rotate(-0.6deg); }
+}
+
+@keyframes home-sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+}
+
+@keyframes home-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.home-sheet { animation: home-sheet-up 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.home-scrim { animation: home-fade 240ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .home-cover, .home-press { transition: none; }
+    .home-sheet, .home-scrim { animation: none; }
+}
+
+/* Family Feud: risposta che si gira, errore timbrato, scheda che sale */
+.feud-press,
+.myst-press,
+.rubo-press,
+.top-press,
+.asta-press,
+.qd-press,
+.gn-press {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.feud-press:active:not(:disabled),
+.myst-press:active:not(:disabled),
+.rubo-press:active:not(:disabled),
+.top-press:active:not(:disabled),
+.asta-press:active:not(:disabled),
+.qd-press:active:not(:disabled),
+.gn-press:active:not(:disabled) { transform: scale(0.97); }
+
+@keyframes feud-flip {
+    from { transform: perspective(600px) rotateX(-90deg); }
+    to { transform: none; }
+}
+@keyframes feud-stamp {
+    from { transform: scale(2.2) rotate(-8deg); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+@keyframes feud-slam {
+    from { transform: scale(1.25); }
+    to { transform: none; }
+}
+@keyframes feud-up {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+}
+
+.feud-flip { animation: feud-flip 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.feud-slam { animation: feud-slam 320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.feud-stamp-scrim { animation: home-fade 160ms ease-out both; }
+.feud-stamp { animation: feud-stamp 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.feud-up { animation: feud-up 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .feud-press, .myst-press, .rubo-press, .top-press, .asta-press, .qd-press, .gn-press { transition: none; }
+    .feud-flip, .feud-slam, .feud-stamp, .feud-stamp-scrim, .feud-up { animation: none; }
+}
+
+/* Personaggio Misterioso: l'indizio nuovo entra dal basso, la rivelazione sale */
+@keyframes myst-clue-in {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+.myst-clue-in { animation: myst-clue-in 460ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.myst-up { animation: feud-up 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .myst-clue-in, .myst-up { animation: none; }
+}
+
+/* Rubo: la carta della risposta si gira, la domanda nuova viene servita, il punteggio salta */
+.rubo-flip { perspective: 900px; }
+.rubo-flip-inner {
+    position: relative;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 520ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.rubo-flip-inner[data-flipped="true"] { transform: rotateY(180deg); }
+.rubo-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.rubo-face-back { transform: rotateY(180deg); }
+.rubo-card-back {
+    background-image: repeating-linear-gradient(45deg, #2A1512 0 6px, var(--color-rubo-ink) 6px 14px);
+}
+
+@keyframes rubo-deal {
+    from { opacity: 0; transform: translateX(60px) rotate(6deg); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes rubo-bump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+.rubo-deal { animation: rubo-deal 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.rubo-bump { display: inline-block; animation: rubo-bump 360ms cubic-bezier(0.2, 1.6, 0.4, 1); }
+.rubo-up { animation: feud-up 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .rubo-flip-inner { transition: none; }
+    .rubo-deal, .rubo-bump, .rubo-up { animation: none; }
+}
+
+/* TOP 100: il numero in classifica sale, le barre dei punteggi crescono */
+@keyframes top-rise {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: none; }
+}
+.top-rise { animation: top-rise 620ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.top-bar { transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1); }
+.top-up { animation: feud-up 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .top-rise, .top-up { animation: none; }
+    .top-bar { transition: none; }
+}
+
+/* Asta Folle: il timbro cade sulla foto, il cartellino si gira, le schede scorrono */
+@keyframes asta-slam {
+    from { opacity: 0; transform: translate(-50%, -50%) rotate(-10deg) scale(2.2); }
+    to { opacity: 1; transform: translate(-50%, -50%) rotate(-10deg) scale(1); }
+}
+@keyframes asta-pane {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes asta-pop {
+    from { opacity: 0; transform: scale(0.7); }
+    to { opacity: 1; transform: none; }
+}
+.asta-slam { animation: asta-slam 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.asta-pane { animation: asta-pane 260ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.asta-pop { animation: asta-pop 380ms 420ms cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+.asta-up { animation: feud-up 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.asta-lift { transition: translate 220ms cubic-bezier(0.2, 1.4, 0.4, 1), transform 220ms cubic-bezier(0.2, 1.4, 0.4, 1); }
+.asta-tag { perspective: 900px; }
+.asta-tag-inner {
+    position: relative;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 640ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.asta-tag-inner[data-flipped="true"] { transform: rotateY(180deg); }
+.asta-tag-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.asta-tag-back { transform: rotateY(180deg); }
+
+@media (prefers-reduced-motion: reduce) {
+    .asta-slam, .asta-pane, .asta-pop, .asta-up { animation: none; }
+    .asta-lift, .asta-tag-inner { transition: none; }
+}
+
+/* Quando, Dove, Come, Perché: la parola larga, il gradino che si apre */
+.qd-wide {
+    font-family: var(--font-qd);
+    font-weight: 800;
+    font-stretch: 140%;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+}
+@keyframes qd-open {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+.qd-open { animation: qd-open 460ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.qd-pane { animation: asta-pane 260ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.qd-up { animation: feud-up 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .qd-open, .qd-pane, .qd-up { animation: none; }
+}
+
+/* Indovina il Numero: le tessere del contatore si girano una alla volta */
+.gn-tile { perspective: 400px; }
+@keyframes gn-flip {
+    0% { transform: rotateX(90deg); opacity: 0.3; }
+    60% { transform: rotateX(-12deg); opacity: 1; }
+    100% { transform: none; }
+}
+.gn-flip { animation: gn-flip 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+.gn-q { animation: asta-pane 360ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .gn-flip, .gn-q { animation: none; }
 }

@@ -3,11 +3,15 @@ import type { GameAction } from "@/types/actions.types";
 import { areAllAnswersRevealed, calculateRoundPoints } from "@/services/gameLogic";
 import { matchAnswer, matchAnswerForFaceOff } from "@/services/matchingService";
 import { RUBO_POINTS } from "@/services/ruboService";
-import { cluePoints, MYSTERY_MAX_CLUES } from "@/services/mysteryService";
+import { cluePoints, MYSTERY_MAX_CLUES, MYSTERY_TEAM_COLORS } from "@/services/mysteryService";
 import { isGuessCorrect } from "@/services/higherLowerService";
 import {
+  TOP100_MAX_ROUNDS,
+  TOP100_MIN_ROUNDS,
   TOP100_TEAM_COLORS,
+  top100CurrentRound,
   top100CurrentTeam,
+  top100MinRounds,
   top100Points,
   top100TotalTurns,
 } from "@/services/top100Service";
@@ -19,6 +23,7 @@ import {
   astaCanPass,
   astaMaxBid,
 } from "@/services/astaService";
+import { QDCP_MAX_CLUES, QDCP_TEAM_COLORS, qdcpPoints } from "@/services/qdcpService";
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -38,6 +43,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         higherLower: null,
         top100: null,
         asta: null,
+        qdcp: null,
         teamA: { ...state.teamA, score: 0 },
         teamB: { ...state.teamB, score: 0 },
         currentRound: null,
@@ -45,9 +51,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
 
     case "START_RUBO":
+      // I due sfidanti si nominano nella schermata iniziale del Rubo
       return {
         ...state,
         gameMode: "rubo",
+        teamA: { name: action.payload.nameA, score: 0 },
+        teamB: { name: action.payload.nameB, score: 0 },
         rubo: {
           deck: action.payload.deck,
           currentIndex: 0,
@@ -55,6 +64,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           outcomeA: null,
           outcomeB: null,
         },
+      };
+
+    case "RUBO_REMATCH":
+      // Stessi sfidanti, punteggi azzerati: si torna alla scelta della categoria
+      return {
+        ...state,
+        rubo: null,
+        teamA: { ...state.teamA, score: 0 },
+        teamB: { ...state.teamB, score: 0 },
       };
 
     case "RUBO_REVEAL_ANSWER": {
@@ -108,6 +126,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         gameMode: "mystery",
         mystery: {
+          teams: action.payload.teamNames.map((name, i) => ({
+            name: name.trim(),
+            color: MYSTERY_TEAM_COLORS[i % MYSTERY_TEAM_COLORS.length],
+            score: 0,
+          })),
           deck: action.payload.deck,
           currentIndex: 0,
           cluesRevealed: 1,
@@ -140,20 +163,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const previous = state.mystery.solvedBy;
       if (previous === team) return state; // nessun cambiamento
 
-      let teamA = state.teamA;
-      let teamB = state.teamB;
-
-      if (previous === "A") teamA = { ...teamA, score: teamA.score - points };
-      if (previous === "B") teamB = { ...teamB, score: teamB.score - points };
-
-      if (team === "A") teamA = { ...teamA, score: teamA.score + points };
-      if (team === "B") teamB = { ...teamB, score: teamB.score + points };
+      const teams = state.mystery.teams.map((t, i) => {
+        let score = t.score;
+        if (i === previous) score -= points;
+        if (i === team) score += points;
+        return score === t.score ? t : { ...t, score };
+      });
 
       return {
         ...state,
-        teamA,
-        teamB,
-        mystery: { ...state.mystery, solvedBy: team },
+        mystery: { ...state.mystery, teams, solvedBy: team },
       };
     }
 
@@ -256,20 +275,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           bonuses,
           lots,
           current: 0,
-          cluesShown: 0,
           sales: [],
           unsold: [],
           phase: "auction",
           revealIndex: 0,
         },
       };
-    }
-
-    case "ASTA_SHOW_CLUE": {
-      const a = state.asta;
-      if (!a || a.phase !== "auction") return state;
-      const max = a.lots[a.current]?.clues.length ?? 0;
-      return { ...state, asta: { ...a, cluesShown: Math.min(a.cluesShown + 1, max) } };
     }
 
     case "ASTA_SELL": {
@@ -292,14 +303,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case "ASTA_PASS": {
       const a = state.asta;
       if (!a || a.phase !== "auction" || !astaCanPass(a)) return state;
-      const next = { ...a, unsold: [...a.unsold, a.current], current: a.current + 1, cluesShown: 0 };
+      const next = { ...a, unsold: [...a.unsold, a.current], current: a.current + 1 };
       return { ...state, asta: astaAuctionOver(next) ? { ...next, phase: "reveal", revealIndex: 0 } : next };
     }
 
     case "ASTA_NEXT": {
       const a = state.asta;
       if (!a || a.phase !== "sold") return state;
-      const next = { ...a, current: a.current + 1, cluesShown: 0, phase: "auction" as const };
+      const next = { ...a, current: a.current + 1, phase: "auction" as const };
       if (!astaAuctionOver(next)) return { ...state, asta: next };
       // I lotti mai battuti finiscono tra gli invenduti del catalogo finale
       const leftovers = a.lots.map((_, i) => i).filter((i) => i > a.current);
@@ -320,6 +331,102 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // Nuova asta: si torna alla preparazione restando in questa modalità
       return { ...state, asta: null };
 
+    // ─────────────────── QUANDO, DOVE, COME, PERCHÉ ───────────────────
+    case "QDCP_SETUP": {
+      const { teamNames, deck } = action.payload;
+      if (deck.length === 0) return state;
+      return {
+        ...state,
+        gameMode: "qdcp",
+        qdcp: {
+          teams: teamNames.map((name, i) => ({
+            name: name.trim(),
+            color: QDCP_TEAM_COLORS[i % QDCP_TEAM_COLORS.length],
+            score: 0,
+          })),
+          deck,
+          current: 0,
+          cluesShown: 1,
+          out: [],
+          solvedBy: null,
+          phase: "playing",
+          results: [],
+        },
+      };
+    }
+
+    case "QDCP_REVEAL_CLUE": {
+      const q = state.qdcp;
+      if (!q || q.phase !== "playing" || q.cluesShown >= QDCP_MAX_CLUES) return state;
+      return { ...state, qdcp: { ...q, cluesShown: q.cluesShown + 1 } };
+    }
+
+    case "QDCP_CORRECT": {
+      const q = state.qdcp;
+      const { team } = action.payload;
+      if (!q || q.phase !== "playing" || q.out.includes(team) || !q.teams[team]) return state;
+      const points = qdcpPoints(q.cluesShown);
+      return {
+        ...state,
+        qdcp: {
+          ...q,
+          phase: "solution",
+          solvedBy: team,
+          teams: q.teams.map((t, i) => (i === team ? { ...t, score: t.score + points } : t)),
+          results: [...q.results, { solvedBy: team, clue: q.cluesShown, wrong: q.out.length }],
+        },
+      };
+    }
+
+    case "QDCP_WRONG": {
+      const q = state.qdcp;
+      const { team } = action.payload;
+      if (!q || q.phase !== "playing" || q.out.includes(team) || !q.teams[team]) return state;
+      const out = [...q.out, team];
+      // Se sono fuori tutte, la carta si chiude senza punti
+      if (out.length >= q.teams.length) {
+        return {
+          ...state,
+          qdcp: {
+            ...q,
+            out,
+            phase: "solution",
+            solvedBy: null,
+            results: [...q.results, { solvedBy: null, clue: q.cluesShown, wrong: out.length }],
+          },
+        };
+      }
+      return { ...state, qdcp: { ...q, out } };
+    }
+
+    case "QDCP_GIVE_UP": {
+      const q = state.qdcp;
+      if (!q || q.phase !== "playing") return state;
+      return {
+        ...state,
+        qdcp: {
+          ...q,
+          phase: "solution",
+          solvedBy: null,
+          results: [...q.results, { solvedBy: null, clue: q.cluesShown, wrong: q.out.length }],
+        },
+      };
+    }
+
+    case "QDCP_NEXT": {
+      const q = state.qdcp;
+      if (!q || q.phase !== "solution") return state;
+      if (q.current + 1 >= q.deck.length) return { ...state, qdcp: { ...q, phase: "end" } };
+      return {
+        ...state,
+        qdcp: { ...q, current: q.current + 1, cluesShown: 1, out: [], solvedBy: null, phase: "playing" },
+      };
+    }
+
+    case "QDCP_RESTART":
+      // Nuova partita: si torna alla preparazione restando in questa modalità
+      return { ...state, qdcp: null };
+
     // ─────────────────── MODALITÀ TOP 100 ───────────────────
     case "TOP100_SETUP": {
       const { teamNames, scoring, roundsPerCategory } = action.payload;
@@ -334,6 +441,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           })),
           scoring,
           roundsPerCategory,
+          rounds: roundsPerCategory,
           phase: "choose",
           categoryId: null,
           startTeam: 0,
@@ -352,6 +460,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...t,
           phase: "playing",
           categoryId: action.payload.categoryId,
+          rounds: Math.min(TOP100_MAX_ROUNDS, Math.max(TOP100_MIN_ROUNDS, action.payload.rounds)),
           // A ogni classifica apre una squadra diversa
           startTeam: t.playedCategoryIds.length % t.teams.length,
           answers: [],
@@ -388,6 +497,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         top100: { ...t, answers, phase: answers.length >= top100TotalTurns(t) ? "end" : "playing" },
       };
+    }
+
+    case "TOP100_SET_ROUNDS": {
+      // Durante una classifica il master può aggiungere o togliere giri,
+      // ma mai sotto quelli già cominciati
+      const t = state.top100;
+      if (!t || (t.phase !== "playing" && t.phase !== "result")) return state;
+      const min = t.phase === "playing" ? top100CurrentRound(t) : top100MinRounds(t);
+      const rounds = Math.min(TOP100_MAX_ROUNDS, Math.max(min, action.payload.rounds));
+      return { ...state, top100: { ...t, rounds } };
     }
 
     case "TOP100_NEXT": {
@@ -914,6 +1033,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         higherLower: null,
         top100: null,
         asta: null,
+        qdcp: null,
         currentRound: null,
         roundHistory: [],
       };

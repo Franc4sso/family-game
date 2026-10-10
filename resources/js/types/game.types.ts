@@ -29,6 +29,7 @@ export interface Team {
 import type { RuboQuestion } from "@/data/ruboQuestions";
 import type { MysteryCharacter } from "@/data/charactersQuestions";
 import type { HLItem } from "@/data/higherLowerItems";
+import type { QdcpCard } from "@/data/qdcpCards";
 
 export type GameMode =
   | "master"
@@ -38,7 +39,8 @@ export type GameMode =
   | "higher-lower"
   | "guess-number"
   | "top100"
-  | "asta";
+  | "asta"
+  | "qdcp";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 
@@ -51,10 +53,12 @@ export interface RuboState {
 }
 
 export interface MysteryState {
+  /** Da 2 a 6 squadre, ognuna col suo colore. */
+  teams: Top100Team[];
   deck: MysteryCharacter[];
   currentIndex: number;
   cluesRevealed: number;        // parte da 1
-  solvedBy: "A" | "B" | null;
+  solvedBy: number | null;      // indice in teams
 }
 
 /**
@@ -111,13 +115,40 @@ export interface Top100Answer {
 export interface Top100State {
   teams: Top100Team[];
   scoring: Top100Scoring;
+  /** Giri proposti per ogni nuova classifica, scelti all'inizio. */
   roundsPerCategory: number;
+  /** Giri della classifica in corso: si possono cambiare classifica per classifica. */
+  rounds: number;
   phase: "choose" | "playing" | "result" | "end";
   categoryId: string | null;
   /** Squadra che apre la classifica corrente: ruota a ogni classifica. */
   startTeam: number;
   answers: Top100Answer[];
   playedCategoryIds: string[];
+}
+
+// ─── QUANDO, DOVE, COME, PERCHÉ ───
+
+export interface QdcpCardResult {
+  solvedBy: number | null; // indice in teams, null se nessuno ha indovinato
+  clue: number;            // indizi svelati quando la carta si è chiusa
+  wrong: number;           // risposte sbagliate sulla carta
+}
+
+/**
+ * Stato di "Quando, Dove, Come, Perché": per ogni carta si svelano fino a
+ * quattro indizi; chi indovina prende più punti quanti meno indizi ha visto,
+ * chi sbaglia è fuori per quella carta.
+ */
+export interface QdcpState {
+  teams: Top100Team[];
+  deck: QdcpCard[];
+  current: number;       // carta in gioco
+  cluesShown: number;    // da 1 a 4
+  out: number[];         // squadre fuori per la carta corrente
+  solvedBy: number | null;
+  phase: "playing" | "solution" | "end";
+  results: QdcpCardResult[];
 }
 
 // ─── ASTA FOLLE ───
@@ -154,7 +185,6 @@ export interface AstaState {
   bonuses: { affare: boolean; bidone: boolean };
   lots: AstaLot[];
   current: number;       // lotto all'asta
-  cluesShown: number;    // note del banditore già svelate per il lotto corrente
   sales: AstaSale[];
   unsold: number[];
   phase: "auction" | "sold" | "reveal" | "final";
@@ -170,6 +200,7 @@ export interface GameState {
   higherLower: HigherLowerState | null;
   top100: Top100State | null;
   asta: AstaState | null;
+  qdcp: QdcpState | null;
   currentRound: Round | null;
   roundHistory: Round[];
 }
@@ -183,6 +214,7 @@ export const initialGameState: GameState = {
   higherLower: null,
   top100: null,
   asta: null,
+  qdcp: null,
   currentRound: null,
   roundHistory: [],
 };

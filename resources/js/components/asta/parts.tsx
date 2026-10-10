@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import { paddleNumber } from "@/services/astaService";
 import type { AstaTeam } from "@/types/game.types";
 
+/**
+ * Asta Folle ha due ambienti. La sala (tone "paper") è quello che si mostra
+ * a tutti: pagine di un catalogo d'asta stampato, crema e inchiostro. Il banco
+ * (tone "dark") è il dietro le quinte del banditore.
+ */
+
 // ─── Icone (stroke, ereditano il colore) ───
 
 const stroke = {
@@ -18,8 +24,13 @@ export const IconHammer = ({ size = 22 }) => (
   </svg>
 );
 export const IconBack = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" strokeWidth={2.4} {...stroke}>
-    <path d="M19 12H5M11 6l-6 6 6 6" />
+  <svg width="20" height="20" viewBox="0 0 24 24" strokeWidth={2.4} {...stroke}>
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+);
+export const IconChevron = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" strokeWidth={2.4} {...stroke}>
+    <path d="M9 6l6 6-6 6" />
   </svg>
 );
 export const IconClose = ({ size = 20 }) => (
@@ -28,7 +39,7 @@ export const IconClose = ({ size = 20 }) => (
   </svg>
 );
 export const IconExpand = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" strokeWidth={2.2} {...stroke}>
+  <svg width="16" height="16" viewBox="0 0 24 24" strokeWidth={2.2} {...stroke}>
     <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
   </svg>
 );
@@ -50,32 +61,53 @@ export const IconTrash = () => (
   </svg>
 );
 export const IconUndo = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" strokeWidth={2} {...stroke}>
+  <svg width="18" height="18" viewBox="0 0 24 24" strokeWidth={2.2} {...stroke}>
     <path d="M9 14L4 9l5-5" />
     <path d="M4 9h11a5 5 0 0 1 0 10h-3" />
+  </svg>
+);
+export const IconDots = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <circle cx="5" cy="12" r="1.8" />
+    <circle cx="12" cy="12" r="1.8" />
+    <circle cx="19" cy="12" r="1.8" />
   </svg>
 );
 
 // ─── Layout ───
 
-export function AstaScreen({ children, padded = true }: { children: React.ReactNode; padded?: boolean }) {
+export type AstaTone = "dark" | "paper";
+
+export function AstaScreen({
+  children,
+  padded = true,
+  tone = "dark",
+}: {
+  children: React.ReactNode;
+  padded?: boolean;
+  tone?: AstaTone;
+}) {
+  const look = tone === "paper" ? "bg-asta-paper text-asta-ink" : "bg-asta-bg text-asta-cream";
   return (
-    <div className="min-h-screen bg-asta-bg font-asta text-asta-cream">
-      <div className={`mx-auto flex min-h-screen max-w-md flex-col ${padded ? "gap-3.5 px-3.5 pb-4 pt-3.5" : ""}`}>{children}</div>
+    <div className={`min-h-dvh font-asta ${look}`}>
+      <div className={`mx-auto flex min-h-dvh max-w-md flex-col ${padded ? "gap-3.5 px-4 pt-3 pb-5" : ""}`}>{children}</div>
     </div>
   );
 }
 
 export function MonoLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <span className={`font-asta-mono text-[11px] font-bold tracking-[0.1em] text-asta-muted ${className}`}>{children}</span>;
+  return <span className={`font-asta-mono text-[11px] font-bold tracking-[0.06em] text-asta-muted ${className}`}>{children}</span>;
 }
+
+/** Il nome del gioco, come intestazione delle pagine della sala. */
+export const AstaWordmark = () => <span className="text-2xl font-extrabold tracking-[-0.03em] text-asta-red">Asta Folle</span>;
 
 export function BackPill({ onClick, label = "Indietro" }: { onClick: () => void; label?: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex h-11 items-center gap-1.5 self-start rounded-full border border-asta-line bg-asta-surface pl-2.5 pr-3.5 text-sm font-bold active:scale-95"
+      className="asta-press flex h-11 items-center gap-1.5 self-start rounded-full border-[1.5px] border-asta-line bg-asta-surface pr-4 pl-2.5 text-sm font-extrabold"
     >
       <IconBack />
       {label}
@@ -90,15 +122,17 @@ export function Paddle({
   size = 44,
   handle = false,
   ring = false,
+  className = "",
 }: {
   team: AstaTeam;
   index: number;
   size?: number;
   handle?: boolean;
   ring?: boolean;
+  className?: string;
 }) {
   return (
-    <span className="flex shrink-0 flex-col items-center">
+    <span className={`flex shrink-0 flex-col items-center ${className}`} aria-hidden>
       <span
         className="flex items-center justify-center rounded-full font-asta-mono font-bold text-asta-bg"
         style={{
@@ -106,123 +140,116 @@ export function Paddle({
           height: size,
           background: team.color,
           fontSize: Math.round(size * 0.32),
-          boxShadow: ring ? "0 0 0 3px #E8411F" : undefined,
+          boxShadow: ring ? "0 0 0 3px var(--color-asta-red)" : undefined,
         }}
-        aria-hidden
       >
         {paddleNumber(index)}
       </span>
-      {handle && <span className="h-3.5 w-2 rounded-b-[3px] bg-[#6B5848]" aria-hidden />}
+      {handle && (
+        <span className="rounded-b-[3px] bg-asta-ink-muted" style={{ width: Math.round(size * 0.18), height: Math.round(size * 0.3) }} />
+      )}
     </span>
   );
 }
 
 /**
- * Foto del lotto a tutta larghezza, sempre intera (mai tagliata): le bande
- * scure riempiono lo spazio se l'immagine è più stretta o più alta.
+ * Foto del lotto, sempre intera (mai tagliata): le bande scure riempiono lo
+ * spazio se l'immagine è più stretta o più alta.
  */
 export function LotPhoto({
   src,
   alt,
-  height = "h-[min(46vh,340px)]",
+  height = "h-[min(44dvh,360px)]",
+  className = "",
+  dim = false,
   onExpand,
   children,
 }: {
   src: string;
   alt: string;
   height?: string;
+  className?: string;
+  dim?: boolean;
   onExpand?: () => void;
   children?: React.ReactNode;
 }) {
   const [broken, setBroken] = useState(false);
   return (
-    <div className={`relative w-full bg-asta-photo ${height}`}>
+    <figure className={`relative m-0 w-full overflow-hidden bg-asta-photo ${height} ${className}`}>
       {broken ? (
         <div className="flex h-full w-full items-center justify-center font-asta-mono text-xs text-asta-muted">FOTO NON DISPONIBILE</div>
       ) : (
-        <img src={src} alt={alt} onError={() => setBroken(true)} className="h-full w-full object-contain" draggable={false} />
+        <img
+          src={src}
+          alt={alt}
+          onError={() => setBroken(true)}
+          className={`h-full w-full object-contain ${dim ? "opacity-75" : ""}`}
+          draggable={false}
+        />
       )}
       {onExpand && !broken && (
         <button
           type="button"
           onClick={onExpand}
           aria-label="Mostra la foto a schermo intero"
-          className="absolute bottom-3 right-3 flex h-11 items-center gap-1.5 rounded-full bg-asta-bg/90 px-3.5 text-[13px] font-bold active:scale-95"
+          className="asta-press absolute right-2.5 bottom-2.5 flex h-11 items-center gap-1.5 rounded-full bg-asta-bg/90 px-3.5 text-[13px] font-bold text-asta-cream"
         >
           <IconExpand />
           Schermo intero
         </button>
       )}
       {children}
-    </div>
+    </figure>
   );
 }
 
-/** Selettore Tabellone / Banco con menu opzioni. */
-export function BancoTabs({
-  active,
-  onBoard,
-  onBanco,
-  menu,
+/** Scheda di conferma dal basso, al posto di window.confirm. */
+export function AstaConfirm({
+  title,
+  text,
+  confirmLabel,
+  onCancel,
+  onConfirm,
 }: {
-  active: "board" | "banco";
-  onBoard: () => void;
-  onBanco: () => void;
-  menu: { label: string; onClick: () => void; danger?: boolean; disabled?: boolean }[];
+  title: string;
+  text: string;
+  confirmLabel: string;
+  onCancel: () => void;
+  onConfirm: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const tab = (isActive: boolean) =>
-    `rounded-full text-sm ${isActive ? "bg-asta-cream font-extrabold text-asta-ink" : "font-bold text-asta-muted"}`;
   return (
-    <div className="relative flex items-center gap-2">
-      <div className="grid h-12 flex-1 grid-cols-2 gap-1 rounded-full border border-asta-line bg-asta-surface p-1">
-        <button type="button" aria-pressed={active === "board"} onClick={onBoard} className={tab(active === "board")}>
-          Tabellone
-        </button>
-        <button type="button" aria-pressed={active === "banco"} onClick={onBanco} className={tab(active === "banco")}>
-          Banco
-        </button>
-      </div>
-      <button
-        type="button"
-        aria-label="Altre opzioni"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-12 w-12 items-center justify-center rounded-full border border-asta-line bg-asta-surface active:scale-95"
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-asta-photo/70 sm:items-center">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="asta-confirm"
+        className="asta-up flex w-full max-w-md flex-col gap-3 rounded-t-[26px] bg-asta-surface px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] font-asta text-asta-cream sm:rounded-[26px]"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <circle cx="12" cy="5" r="1.8" />
-          <circle cx="12" cy="12" r="1.8" />
-          <circle cx="12" cy="19" r="1.8" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute right-0 top-14 z-30 w-56 rounded-2xl border border-asta-line bg-asta-surface p-1.5 shadow-2xl">
-          {menu.map((m) => (
-            <button
-              key={m.label}
-              type="button"
-              disabled={m.disabled}
-              onClick={() => {
-                setOpen(false);
-                m.onClick();
-              }}
-              className={`h-11 w-full rounded-xl px-3 text-left text-sm font-bold active:bg-asta-line disabled:opacity-40 ${
-                m.danger ? "text-[#FF9A86]" : ""
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+        <h2 id="asta-confirm" className="m-0 text-2xl leading-tight font-extrabold tracking-[-0.02em]">
+          {title}
+        </h2>
+        <p className="m-0 text-[15px] font-semibold text-asta-muted">{text}</p>
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onClick={onCancel} className={`${btnGhost} h-[52px] text-[15px]`}>
+            Resta
+          </button>
+          <button type="button" onClick={onConfirm} className={`${btnRed} h-[52px] text-[15px]`}>
+            {confirmLabel}
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 export const btnRed =
-  "flex items-center justify-center gap-2.5 rounded-full bg-asta-red font-extrabold text-asta-red-ink active:scale-[0.98] disabled:opacity-40";
+  "asta-press flex items-center justify-center gap-2.5 rounded-full bg-asta-red font-extrabold text-asta-red-ink disabled:opacity-40";
 export const btnCream =
-  "flex items-center justify-center gap-2 rounded-full bg-asta-cream font-extrabold text-asta-ink active:scale-[0.98] disabled:opacity-40";
+  "asta-press flex items-center justify-center gap-2 rounded-full bg-asta-cream font-extrabold text-asta-ink disabled:opacity-40";
+export const btnInk =
+  "asta-press flex items-center justify-center gap-2 rounded-full bg-asta-ink font-extrabold text-asta-cream disabled:opacity-40";
 export const btnGhost =
-  "flex items-center justify-center gap-2 rounded-full border border-asta-line bg-asta-surface font-bold active:scale-[0.98] disabled:opacity-40";
+  "asta-press flex items-center justify-center gap-2 rounded-full border-[1.5px] border-asta-line bg-asta-surface font-bold disabled:opacity-40";
+/** Bottone secondario sulle pagine della sala. */
+export const btnOutline =
+  "asta-press flex items-center justify-center gap-2 rounded-full border-2 border-asta-ink font-bold text-asta-ink disabled:opacity-40";

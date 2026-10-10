@@ -27,11 +27,19 @@ export function top100CurrentTeam(state: Top100State): number {
 }
 
 export function top100TotalTurns(state: Top100State): number {
-  return state.teams.length * state.roundsPerCategory;
+  return state.teams.length * state.rounds;
 }
 
 export function top100CurrentRound(state: Top100State): number {
-  return Math.min(Math.floor(state.answers.length / state.teams.length) + 1, state.roundsPerCategory);
+  return Math.min(Math.floor(state.answers.length / state.teams.length) + 1, state.rounds);
+}
+
+export const TOP100_MIN_ROUNDS = 1;
+export const TOP100_MAX_ROUNDS = 10;
+
+/** Giri minimi della classifica in corso: non si scende sotto quello già iniziato. */
+export function top100MinRounds(state: Top100State): number {
+  return Math.max(TOP100_MIN_ROUNDS, Math.ceil(state.answers.length / state.teams.length));
 }
 
 export const normalizeTop100 = (s: string) =>

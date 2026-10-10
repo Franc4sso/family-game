@@ -43,7 +43,7 @@ export function AstaGame({ gameState, dispatch, onUndo, canUndo }: AstaGameProps
   return (
     <>
       {view === "banco" ? (
-        <AstaBanco state={state} dispatch={dispatch} onUndo={onUndo} canUndo={canUndo} onShowBoard={() => setView("board")} />
+        <AstaBanco key={state.current} state={state} dispatch={dispatch} onUndo={onUndo} canUndo={canUndo} onShowBoard={() => setView("board")} />
       ) : (
         <AstaBoard state={state} onOpenBanco={() => setView("banco")} onExpandPhoto={() => setFullPhoto(true)} />
       )}
