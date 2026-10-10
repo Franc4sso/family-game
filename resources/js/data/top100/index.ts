@@ -11,13 +11,15 @@ export const TOP100_CATEGORIES: Top100Category[] = Object.values(modules)
   .sort((a, b) => a.name.localeCompare(b.name, "it"));
 
 export const TOP100_GROUP_LABELS: Record<Top100Group, string> = {
-  social: "Social e web",
+  persone: "Personaggi",
+  nomi: "Nomi",
+  "cinema-giochi": "Cinema, libri e giochi",
+  cibo: "Cibo",
+  animali: "Animali",
   musica: "Musica",
-  "cinema-giochi": "Cinema e giochi",
-  soldi: "Soldi e marchi",
+  oggetti: "Oggetti e tecnologia",
+  web: "Web",
   mondo: "Mondo",
-  italia: "Italia",
-  sport: "Sport",
 };
 
 export type { Top100Category, Top100Group, Top100Item } from "./types";
