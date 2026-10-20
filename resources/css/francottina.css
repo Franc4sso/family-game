@@ -1,0 +1,134 @@
+/* ─── Francottina: studio TV, mobile-first ───
+   Lama d'acciaio sopra tre tessere di carta, console del conduttore
+   agganciata al bordo basso su telefono. */
+
+.fr {
+    --fr-ink: #0a0f24;
+    --fr-stage: #121a3b;
+    --fr-stage-2: #1a2450;
+    --fr-paper: #f4efe2;
+    --fr-paper-ink: #141936;
+    --fr-brass: #e4b553;
+    --fr-brass-dim: #8f7337;
+    --fr-steel-hi: #e8edf7;
+    --fr-steel-lo: #7d89a6;
+    --fr-fg: #eef0fa;
+    --fr-muted: #8a93ba;
+    --fr-line: #2a3566;
+    --fr-ok: #3dd193;
+    --fr-bad: #ff5b4f;
+    --fr-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+
+    min-height: 100dvh;
+    overflow-x: clip;
+    background:
+        radial-gradient(60% 50% at 20% 0%, #1c2a6b55, transparent 70%),
+        radial-gradient(50% 40% at 85% 5%, #e4b55318, transparent 70%),
+        var(--fr-ink);
+    color: var(--fr-fg);
+    -webkit-font-smoothing: antialiased;
+}
+.fr button { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.fr button:focus-visible, .fr input:focus-visible { outline: 2px solid var(--fr-brass); outline-offset: 2px; }
+
+.fr-display { font-family: var(--fr-display); font-weight: 900; text-transform: uppercase; line-height: .9; }
+.fr-eyebrow { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--fr-muted); font-weight: 600; }
+.fr-logo { font-family: var(--fr-display); font-weight: 900; text-transform: uppercase; line-height: .85; letter-spacing: .01em; }
+.fr-logo b { color: var(--fr-brass); font-weight: 900; }
+
+/* indizi visti, come piccole tessere */
+.fr-pips { display: inline-flex; gap: 3px; }
+.fr-pip { width: 8px; height: 11px; border-radius: 2px; background: var(--fr-line); }
+.fr-pip.on { background: var(--fr-paper); }
+.fr-pips.all .fr-pip { background: var(--fr-brass); }
+.fr-pips.lg .fr-pip { width: 12px; height: 16px; }
+
+/* ── patibolo: travi d'ottone e lama che scende col tempo ── */
+.fr-gallows { --beam: 8px; --bh: 34px; position: relative; height: 58px; max-width: 760px; margin: 0 auto; }
+.fr-post { position: absolute; top: 0; bottom: 0; width: 8px; background: linear-gradient(90deg, var(--fr-brass-dim), var(--fr-brass), var(--fr-brass-dim)); }
+.fr-post.l { left: 6%; }
+.fr-post.r { right: 6%; }
+.fr-beam { position: absolute; top: 0; left: calc(6% - 6px); right: calc(6% - 6px); height: var(--beam); background: var(--fr-brass); border-radius: 0 0 3px 3px; }
+.fr-blade {
+    position: absolute; left: calc(6% + 10px); right: calc(6% + 10px); height: var(--bh);
+    top: calc(var(--beam) + var(--p, 0) * (100% - var(--beam) - var(--bh)));
+    background: linear-gradient(170deg, var(--fr-steel-hi) 0%, #b8c2d8 45%, var(--fr-steel-lo) 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 45%, 0 100%);
+    display: flex; justify-content: flex-end; padding: 3px 12px;
+    transition: top .1s linear;
+}
+.fr-blade span { font-family: var(--fr-display); font-weight: 900; font-size: 19px; line-height: 1; color: var(--fr-paper-ink); font-variant-numeric: tabular-nums; }
+.fr-blade.off { opacity: .35; }
+.fr-blade.urgent { background: linear-gradient(170deg, #fff 0%, #ffb3ad 55%, var(--fr-bad) 100%); }
+.fr-blade.down { animation: fr-thunk .35s ease; }
+@keyframes fr-thunk { 0% { filter: brightness(1.7); } 50% { translate: 0 4px; } }
+
+/* ── tessere: retro rigato, fronte di carta che si gira ── */
+.fr-tiles { display: grid; gap: 8px; perspective: 900px; }
+.fr-tile { position: relative; height: 60px; }
+.fr-face {
+    position: absolute; inset: 0; border-radius: 6px; display: grid; place-items: center; text-align: center;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+    font-family: var(--fr-display); font-weight: 900; text-transform: uppercase; line-height: 1;
+}
+.fr-face.front {
+    background: repeating-linear-gradient(135deg, #1e2858 0 10px, #1a2450 10px 20px);
+    border: 1px solid var(--fr-line); color: #34407a; font-size: 32px;
+}
+.fr-face.back {
+    background: var(--fr-paper); color: var(--fr-paper-ink); transform: rotateX(180deg);
+    box-shadow: 0 10px 30px #0006, inset 0 -5px 0 #d9d0b8;
+    font-size: clamp(28px, 9vw, 40px); padding: 0 34px; overflow-wrap: anywhere;
+}
+.fr-face .num { position: absolute; left: 12px; top: 50%; translate: 0 -50%; font: 700 11px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .15em; color: #8d8670; }
+.fr-tile.open .front { transform: rotateX(-180deg); }
+.fr-tile.open .back { transform: rotateX(0); }
+
+/* la soluzione non lascia mai intuire quante lettere ha */
+.fr-slot {
+    min-height: 62px; width: min(100%, 520px); margin: 0 auto; border-radius: 8px;
+    border: 2px dashed var(--fr-line); display: grid; place-items: center; padding: 6px 12px;
+    font-family: var(--fr-display); font-weight: 900; text-transform: uppercase; line-height: 1;
+    font-size: clamp(38px, 11vw, 72px); color: #34407a; overflow-wrap: anywhere; text-align: center;
+}
+.fr-slot.lit { background: var(--fr-brass); border-style: solid; border-color: var(--fr-brass); color: var(--fr-paper-ink); animation: fr-pop .45s cubic-bezier(.22, 1, .36, 1); }
+@keyframes fr-pop { from { scale: .85; opacity: 0; } }
+
+.fr-rule { display: flex; align-items: center; gap: 14px; }
+.fr-rule::before, .fr-rule::after { content: ""; flex: 1; height: 1px; background: var(--fr-line); }
+
+.fr-shake { animation: fr-shake .45s; }
+@keyframes fr-shake { 20%, 60% { translate: -8px 0; } 40%, 80% { translate: 8px 0; } }
+.fr-bump { animation: fr-bump .5s ease; }
+@keyframes fr-bump { 40% { scale: 1.5; color: var(--fr-brass); } }
+
+/* console del conduttore: fissa in basso su telefono */
+.fr-console {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--fr-ink); border-top: 1px solid var(--fr-line); border-radius: 16px 16px 0 0;
+    box-shadow: 0 -12px 30px #0008;
+    padding: 12px max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.fr-console-spacer { height: 240px; }
+
+@media (hover: none) {
+    .fr kbd, .fr .fr-keys { display: none; }
+}
+
+@media (min-width: 768px) {
+    .fr-gallows { --beam: 10px; --bh: 52px; height: 96px; }
+    .fr-blade span { font-size: 26px; }
+    .fr-tiles { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .fr-tile { height: auto; aspect-ratio: 16 / 9; }
+    .fr-face.front { font-size: 56px; }
+    .fr-face.back { font-size: clamp(30px, 4.6vw, 60px); padding: 0 10px; }
+    .fr-face .num { top: 10px; translate: none; }
+    .fr-slot { min-height: 92px; }
+    .fr-console { position: static; border: 1px dashed var(--fr-line); border-radius: 14px; box-shadow: none; padding: 12px; }
+    .fr-console-spacer { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fr *, .fr *::before, .fr *::after { animation: none !important; transition: none !important; }
+}

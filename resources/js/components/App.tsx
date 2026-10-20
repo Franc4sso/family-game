@@ -18,6 +18,7 @@ import { GuessNumberScreen } from "./game/GuessNumberScreen";
 import { Top100Screen } from "./top100/Top100Screen";
 import { AstaGame } from "./asta/AstaGame";
 import { QdcpScreen } from "./qdcp/QdcpScreen";
+import { FrancottinaScreen } from "./game/FrancottinaScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -43,6 +44,10 @@ export function App() {
   }
   if (state.gameMode === "qdcp") {
     return <QdcpScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
+  }
+  // Francottina: da 2 a 6 squadre, gestisce squadre e punteggi per conto suo
+  if (state.gameMode === "francottina") {
+    return <FrancottinaScreen dispatch={dispatch} />;
   }
 
   // Personaggio Misterioso ha da 2 a 6 squadre: le nomina nella sua schermata iniziale

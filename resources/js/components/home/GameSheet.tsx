@@ -12,6 +12,7 @@ const TITLE_CLASS: Record<GameId, string> = {
   top100: "font-['Unbounded'] font-black text-[44px] tracking-[-0.04em]",
   asta: "font-['Bricolage_Grotesque'] font-extrabold text-[44px]",
   qdcp: "font-['Anybody'] font-extrabold uppercase text-[30px] [font-stretch:130%]",
+  francottina: "font-['Big_Shoulders_Display'] font-black uppercase text-5xl",
 };
 
 interface GameSheetProps {

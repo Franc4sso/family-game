@@ -8,7 +8,8 @@ export type GameId =
   | "guess-number"
   | "top100"
   | "asta"
-  | "qdcp";
+  | "qdcp"
+  | "francottina";
 
 export interface GameInfo {
   id: GameId;
@@ -140,6 +141,20 @@ export const GAMES: GameInfo[] = [
       ink: "#B8F28B",
       accent: "#B8F28B",
       accentInk: "#0B3D26",
+    },
+  },
+  {
+    id: "francottina",
+    name: "Francottina",
+    description:
+      "Tre parole, una soluzione che le lega. La prima squadra vede una parola e vale 3 punti, la seconda due e vale 2, la terza tre e vale 1. Se sbaglia anche lei, risponde chi vuole.",
+    chips: ["2–6 squadre", "3 parole"],
+    modes: [{ label: "Francottina", mode: "francottina" }],
+    sheet: {
+      bg: "#1A2450",
+      ink: "#F4EFE2",
+      accent: "#E4B553",
+      accentInk: "#141936",
     },
   },
 ];

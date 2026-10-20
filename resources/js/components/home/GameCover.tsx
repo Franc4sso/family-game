@@ -162,5 +162,27 @@ export function GameCover({ id }: { id: GameId }) {
           </span>
         </div>
       );
+
+    case "francottina":
+      return (
+        <div className="flex h-full w-full items-stretch justify-between gap-4 overflow-hidden rounded-[18px] bg-[#1A2450] px-[18px] py-4 text-left">
+          <div className="flex min-w-0 flex-col justify-between">
+            <span className="font-['Big_Shoulders_Display'] text-[34px] leading-[0.86] font-black uppercase text-[#F4EFE2] md:text-[48px]">
+              Franc<span className="text-[#E4B553]">ott</span>ina
+            </span>
+            <span className="text-xs font-extrabold text-[#AEB6DA]">3 parole · 2–6 squadre</span>
+          </div>
+          <div className="relative flex w-[34%] max-w-[160px] flex-none flex-col justify-end gap-[5px]" aria-hidden="true">
+            {/* lama d'acciaio sopra le tessere */}
+            <span className="absolute top-0 right-1 left-1 h-4 bg-gradient-to-b from-[#E8EDF7] to-[#7D89A6] [clip-path:polygon(0_0,100%_0,100%_45%,0_100%)]" />
+            {["VOLO", "MANO"].map((w) => (
+              <span key={w} className="flex h-6 items-center justify-center rounded bg-[#F4EFE2] font-['Big_Shoulders_Display'] text-[15px] font-black text-[#141936]">
+                {w}
+              </span>
+            ))}
+            <span className="h-6 rounded bg-[repeating-linear-gradient(135deg,#2A3566_0_6px,#1E2858_6px_12px)]" />
+          </div>
+        </div>
+      );
   }
 }

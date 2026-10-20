@@ -40,7 +40,8 @@ export type GameMode =
   | "guess-number"
   | "top100"
   | "asta"
-  | "qdcp";
+  | "qdcp"
+  | "francottina";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 

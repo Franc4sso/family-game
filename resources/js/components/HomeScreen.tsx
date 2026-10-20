@@ -20,9 +20,10 @@ const COVER_LAYOUT: Record<GameId, string> = {
   "higher-lower": "h-[218px] md:h-auto",
   "guess-number": "h-[218px] md:h-auto",
   qdcp: "col-span-2 h-[150px] md:h-auto",
+  francottina: "col-span-2 h-[150px] md:h-auto",
 };
 
-const ORDER: GameId[] = ["ff", "rubo", "mystery", "top100", "asta", "higher-lower", "guess-number", "qdcp"];
+const ORDER: GameId[] = ["ff", "rubo", "mystery", "top100", "asta", "higher-lower", "guess-number", "qdcp", "francottina"];
 
 export function HomeScreen({ dispatch }: HomeScreenProps) {
   const [openId, setOpenId] = useState<GameId | null>(null);
