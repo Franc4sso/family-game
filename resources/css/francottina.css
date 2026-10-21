@@ -101,6 +101,8 @@
 .fr-shake { animation: fr-shake .45s; }
 @keyframes fr-shake { 20%, 60% { translate: -8px 0; } 40%, 80% { translate: 8px 0; } }
 .fr-bump { animation: fr-bump .5s ease; }
+.fr-link { animation: fr-link-in .5s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i) * 700ms + 500ms); }
+@keyframes fr-link-in { from { opacity: 0; translate: 0 8px; } }
 @keyframes fr-bump { 40% { scale: 1.5; color: var(--fr-brass); } }
 
 /* console del conduttore: fissa in basso su telefono */

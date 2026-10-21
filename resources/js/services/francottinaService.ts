@@ -33,6 +33,11 @@ export interface FrancottinaState {
   phase: FrPhase;
   winner: number | null;
   gained: number;
+  /** La squadra di turno ha scommesso: punti doppi se indovina, li perde se sbaglia. */
+  bet: boolean;
+  /** Ultima scommessa persa, da mostrare finché il round va avanti. */
+  lost: { team: number; points: number } | null;
+  betWon: boolean;
   finished: boolean;
 }
 
@@ -40,6 +45,7 @@ export type FrAction =
   | { type: "right" }
   | { type: "wrong" }
   | { type: "steal"; team: number }
+  | { type: "bet" }
   | { type: "reveal" }
   | { type: "next" };
 
@@ -76,6 +82,9 @@ export function createFrancottina(names: string[], rounds: number, categories: F
     phase: "guess",
     winner: null,
     gained: 0,
+    bet: false,
+    lost: null,
+    betWon: false,
     finished: false,
   };
 }
@@ -102,38 +111,43 @@ export function lastMissTeam(s: FrancottinaState): number {
   return teamAt(s, FR_TURNS - 1);
 }
 
+function addScore(s: FrancottinaState, team: number, points: number): FrTeam[] {
+  return s.teams.map((t, i) => (i === team ? { ...t, score: t.score + points } : t));
+}
+
 function award(s: FrancottinaState, team: number, points: number): FrancottinaState {
-  return {
-    ...s,
-    teams: s.teams.map((t, i) => (i === team ? { ...t, score: t.score + points } : t)),
-    phase: "solved",
-    winner: team,
-    gained: points,
-  };
+  return { ...s, teams: addScore(s, team, points), phase: "solved", winner: team, gained: points, bet: false, lost: null };
 }
 
 export function francottinaReducer(s: FrancottinaState, action: FrAction): FrancottinaState {
   switch (action.type) {
+    case "bet":
+      return s.phase === "guess" ? { ...s, bet: !s.bet } : s;
+
     case "right":
       if (s.phase !== "guess") return s;
-      return award(s, teamAt(s, s.attempt), pointsAt(s.attempt));
+      return { ...award(s, teamAt(s, s.attempt), pointsAt(s.attempt) * (s.bet ? 2 : 1)), betWon: s.bet };
 
-    case "wrong":
+    case "wrong": {
       if (s.phase === "open") return { ...s, phase: "failed" };
       if (s.phase !== "guess") return s;
-      if (s.attempt + 1 >= FR_TURNS) return { ...s, phase: "open" };
-      return { ...s, attempt: s.attempt + 1 };
+      const team = teamAt(s, s.attempt);
+      const lost = s.bet ? { team, points: pointsAt(s.attempt) } : null;
+      const after = { ...s, teams: lost ? addScore(s, team, -lost.points) : s.teams, bet: false, lost };
+      if (s.attempt + 1 >= FR_TURNS) return { ...after, phase: "open" };
+      return { ...after, attempt: s.attempt + 1 };
+    }
 
     case "steal":
       if (s.phase !== "open" || action.team === lastMissTeam(s)) return s;
       return award(s, action.team, FR_POINTS[FR_POINTS.length - 1]);
 
     case "reveal":
-      return isLive(s) ? { ...s, phase: "failed" } : s;
+      return isLive(s) ? { ...s, phase: "failed", bet: false, lost: null } : s;
 
     case "next":
       if (isLive(s)) return s;
       if (s.round + 1 >= s.deck.length) return { ...s, finished: true };
-      return { ...s, round: s.round + 1, attempt: 0, phase: "guess", winner: null, gained: 0 };
+      return { ...s, round: s.round + 1, attempt: 0, phase: "guess", winner: null, gained: 0, bet: false, lost: null, betWon: false };
   }
 }

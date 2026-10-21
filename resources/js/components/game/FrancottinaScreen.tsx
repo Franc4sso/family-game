@@ -339,6 +339,15 @@ function Board({ game, seconds, play, onUndo, canUndo, onExit }: BoardProps) {
     return () => clearInterval(id);
   }, [seconds, live, running]);
 
+  // Vibrazione sugli esiti: festa se indovinano, colpo secco se perdono la scommessa.
+  useEffect(() => {
+    if (game.phase === "solved") navigator.vibrate?.([40, 60, 40]);
+  }, [game.phase]);
+
+  useEffect(() => {
+    if (game.lost) navigator.vibrate?.(150);
+  }, [game.lost]);
+
   // Schermo sempre acceso durante la partita.
   useEffect(() => {
     let lock: WakeLockSentinel | null = null;
@@ -351,6 +360,7 @@ function Board({ game, seconds, play, onUndo, canUndo, onExit }: BoardProps) {
       const k = e.key.toLowerCase();
       if (k === "g") play({ type: "right" });
       else if (k === "s") play({ type: "wrong" });
+      else if (k === "b") play({ type: "bet" });
       else if (k === "enter") play({ type: "next" });
       else if (k === " ") {
         e.preventDefault();
@@ -365,6 +375,7 @@ function Board({ game, seconds, play, onUndo, canUndo, onExit }: BoardProps) {
   const secsLeft = Math.ceil(timeLeft / 1000);
   const progress = timed ? 1 - timeLeft / (seconds * 1000) : 0;
   const isLastWord = game.round + 1 >= game.deck.length;
+  const stake = pointsAt(game.attempt);
 
   return (
     <div className="fr">
@@ -452,9 +463,17 @@ function Board({ game, seconds, play, onUndo, canUndo, onExit }: BoardProps) {
                 {open ? (
                   <>Chi indovina per primo prende <Em>{pts(FR_POINTS[2])}</Em></>
                 ) : (
-                  <>{["Una parola", "Due parole", "Tutte e tre le parole"][shown - 1]} · vale <Em>{pts(pointsAt(game.attempt))}</Em></>
+                  <>
+                    {["Una parola", "Due parole", "Tutte e tre le parole"][shown - 1]} · vale <Em>{pts(stake * (game.bet ? 2 : 1))}</Em>
+                    {game.bet && <> · rischia <Em>−{stake}</Em></>}
+                  </>
                 )}
               </p>
+              {game.lost && (
+                <p className="mt-1 font-semibold text-[var(--fr-bad)]">
+                  {game.teams[game.lost.team].name} perde la scommessa: −{game.lost.points}
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap gap-1 md:justify-end" aria-label="Ordine dei tentativi">
               {Array.from({ length: FR_TURNS }, (_, a) => {
@@ -487,9 +506,13 @@ function Board({ game, seconds, play, onUndo, canUndo, onExit }: BoardProps) {
               <p className={`fr-display text-[clamp(32px,9vw,46px)] break-words ${game.phase === "solved" ? "text-[var(--fr-ok)]" : "text-[var(--fr-bad)]"}`}>
                 {game.phase === "solved" && game.winner !== null ? `${game.teams[game.winner].name} +${game.gained}` : "Nessuno ce l'ha fatta"}
               </p>
-              <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[#c3c8e2]">
-                {word.links.map((l) => (
-                  <li key={l}><span className="text-[var(--fr-brass)]">↳ </span>{l}</li>
+              {game.betWon && <p className="fr-eyebrow text-[var(--fr-brass)]">Scommessa vinta, punti doppi</p>}
+              {/* I collegamenti arrivano uno alla volta: è il momento dell'"aaah". */}
+              <ul key={word.id} className="mt-3 grid gap-1.5 text-[#c3c8e2]">
+                {word.links.map((l, i) => (
+                  <li key={l} className="fr-link" style={{ "--i": i } as React.CSSProperties}>
+                    <b className="text-[var(--fr-brass)]">{word.clues[i]}</b> <span className="text-[var(--fr-muted)]">↳</span> {l}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -509,7 +532,7 @@ function Board({ game, seconds, play, onUndo, canUndo, onExit }: BoardProps) {
             <section className="fr-console md:mt-3.5 grid gap-2.5" aria-label="Comandi del conduttore">
               <div className="hidden md:flex justify-between gap-2.5">
                 <span className="fr-eyebrow">Console del conduttore</span>
-                <span className="fr-keys text-xs text-[var(--fr-muted)]">Tasti: G giusta · S sbagliata · Spazio pausa</span>
+                <span className="fr-keys text-xs text-[var(--fr-muted)]">Tasti: G giusta · S sbagliata · B scommessa · Spazio pausa</span>
               </div>
               <div className="flex items-center gap-2.5 pl-3 pr-1.5 py-1.5 rounded-xl bg-[var(--fr-stage)] border border-[var(--fr-line)]">
                 <span className={`flex-1 min-w-0 fr-display font-extrabold text-[22px] tracking-wider break-words ${peek ? "" : "text-[#3a4577]"}`}>
@@ -543,20 +566,33 @@ function Board({ game, seconds, play, onUndo, canUndo, onExit }: BoardProps) {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2.5">
+                <>
                   <button
-                    onClick={() => play({ type: "wrong" })}
-                    className="min-h-[58px] rounded-xl bg-[var(--fr-bad)] text-[#2a0503] font-bold text-[17px] active:scale-[0.97] transition-transform inline-flex items-center justify-center gap-2"
+                    onClick={() => play({ type: "bet" })}
+                    aria-pressed={game.bet}
+                    className={`min-h-11 rounded-xl border font-bold text-[15px] transition-colors inline-flex items-center justify-center gap-2 ${
+                      game.bet
+                        ? "border-[var(--fr-brass)] bg-[color-mix(in_srgb,var(--fr-brass)_22%,var(--fr-stage))] text-[var(--fr-fg)]"
+                        : "border-dashed border-[var(--fr-line)] bg-[var(--fr-stage)] text-[var(--fr-muted)]"
+                    }`}
                   >
-                    Sbagliata <Kbd>S</Kbd>
+                    {game.bet ? `Scommessa: +${stake * 2} o −${stake}` : "Scommettono? Punti doppi o li perdono"} <Kbd>B</Kbd>
                   </button>
-                  <button
-                    onClick={() => play({ type: "right" })}
-                    className="min-h-[58px] rounded-xl bg-[var(--fr-ok)] text-[#062418] font-bold text-[17px] active:scale-[0.97] transition-transform inline-flex items-center justify-center gap-2"
-                  >
-                    Giusta <Kbd>G</Kbd>
-                  </button>
-                </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      onClick={() => play({ type: "wrong" })}
+                      className="min-h-[58px] rounded-xl bg-[var(--fr-bad)] text-[#2a0503] font-bold text-[17px] active:scale-[0.97] transition-transform inline-flex items-center justify-center gap-2"
+                    >
+                      Sbagliata <Kbd>S</Kbd>
+                    </button>
+                    <button
+                      onClick={() => play({ type: "right" })}
+                      className="min-h-[58px] rounded-xl bg-[var(--fr-ok)] text-[#062418] font-bold text-[17px] active:scale-[0.97] transition-transform inline-flex items-center justify-center gap-2"
+                    >
+                      Giusta <Kbd>G</Kbd>
+                    </button>
+                  </div>
+                </>
               )}
 
               <div className="flex gap-2">
