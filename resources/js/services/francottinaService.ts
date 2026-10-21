@@ -1,5 +1,6 @@
 import {
   FRANCOTTINA_WORDS,
+  type FrancottinaCategory,
   type FrancottinaWord,
 } from "@/data/francottinaWords";
 
@@ -52,14 +53,24 @@ function shuffle<T>(items: T[]): T[] {
   return result;
 }
 
-export function countFrancottinaWords(): number {
-  return FRANCOTTINA_WORDS.length;
+export const FR_CATEGORIES: FrancottinaCategory[] = ["Classiche", "Film", "Serie TV", "Cartoni", "Musica"];
+
+export function countFrancottinaWords(categories: FrancottinaCategory[] = FR_CATEGORIES): number {
+  return FRANCOTTINA_WORDS.filter((w) => categories.includes(w.category)).length;
 }
 
-export function createFrancottina(names: string[], rounds: number): FrancottinaState {
+/** Mazzo mescolato delle categorie scelte, senza due parole con la stessa soluzione. */
+function buildDeck(categories: FrancottinaCategory[], rounds: number): FrancottinaWord[] {
+  const seen = new Set<string>();
+  return shuffle(FRANCOTTINA_WORDS.filter((w) => categories.includes(w.category)))
+    .filter((w) => !seen.has(w.answer) && seen.add(w.answer))
+    .slice(0, rounds);
+}
+
+export function createFrancottina(names: string[], rounds: number, categories: FrancottinaCategory[]): FrancottinaState {
   return {
     teams: names.map((name) => ({ name, score: 0 })),
-    deck: shuffle(FRANCOTTINA_WORDS).slice(0, rounds),
+    deck: buildDeck(categories, rounds),
     round: 0,
     attempt: 0,
     phase: "guess",

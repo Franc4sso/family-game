@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import type { Dispatch } from "react";
 import type { GameAction } from "@/types/actions.types";
+import type { FrancottinaCategory } from "@/data/francottinaWords";
 import {
+  FR_CATEGORIES,
   FR_MAX_TEAMS,
   FR_MIN_TEAMS,
   FR_POINTS,
@@ -50,6 +52,7 @@ export function FrancottinaScreen({ dispatch }: FrancottinaScreenProps) {
   const [names, setNames] = useState(["Squadra 1", "Squadra 2"]);
   const [rounds, setRounds] = useState(6);
   const [seconds, setSeconds] = useState(30);
+  const [categories, setCategories] = useState<FrancottinaCategory[]>(FR_CATEGORIES);
   const [game, setGame] = useState<FrancottinaState | null>(null);
   const [history, setHistory] = useState<FrancottinaState[]>([]);
 
@@ -71,9 +74,10 @@ export function FrancottinaScreen({ dispatch }: FrancottinaScreenProps) {
   };
 
   const start = () => {
+    if (categories.length === 0) return;
     const clean = names.map((n, i) => n.trim() || `Squadra ${i + 1}`);
     setNames(clean);
-    setGame(createFrancottina(clean, Math.min(rounds, countFrancottinaWords())));
+    setGame(createFrancottina(clean, rounds, categories));
     setHistory([]);
   };
 
@@ -86,6 +90,8 @@ export function FrancottinaScreen({ dispatch }: FrancottinaScreenProps) {
         setRounds={setRounds}
         seconds={seconds}
         setSeconds={setSeconds}
+        categories={categories}
+        setCategories={setCategories}
         onStart={start}
         onBack={() => dispatch({ type: "CLEAR_MODE" })}
       />
@@ -123,19 +129,24 @@ interface SetupProps {
   setRounds: (n: number) => void;
   seconds: number;
   setSeconds: (n: number) => void;
+  categories: FrancottinaCategory[];
+  setCategories: (c: FrancottinaCategory[]) => void;
   onStart: () => void;
   onBack: () => void;
 }
 
-function Setup({ names, setNames, rounds, setRounds, seconds, setSeconds, onStart, onBack }: SetupProps) {
+function Setup({ names, setNames, rounds, setRounds, seconds, setSeconds, categories, setCategories, onStart, onBack }: SetupProps) {
   const rename = (i: number, v: string) => setNames(names.map((n, j) => (j === i ? v : n)));
+  const toggle = (c: FrancottinaCategory) =>
+    setCategories(categories.includes(c) ? categories.filter((x) => x !== c) : FR_CATEGORIES.filter((x) => x === c || categories.includes(x)));
+  const available = countFrancottinaWords(categories);
 
   return (
     <div className="fr">
       <div className="max-w-5xl mx-auto px-4 pt-6 pb-8 md:pt-12 grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:gap-12 md:items-start">
         <div>
           <p className="fr-eyebrow">Gioco a squadre · per il conduttore</p>
-          <h1 className="mt-2 mb-4 text-[clamp(56px,16.5vw,128px)]">
+          <h1 className="mt-2 mb-4 text-[clamp(56px,16.5vw,128px)] md:text-[clamp(64px,8.5vw,112px)]">
             <Logo />
           </h1>
           <p className="text-base md:text-lg text-[#c9cee6] max-w-[34ch] mb-6">
@@ -205,12 +216,44 @@ function Setup({ names, setNames, rounds, setRounds, seconds, setSeconds, onStar
             <p className="text-xs text-[var(--fr-muted)]">A ogni parola parte una squadra diversa, così nessuno è sempre svantaggiato.</p>
           </div>
 
+          <div className="grid gap-2.5">
+            <p className="fr-eyebrow">Categorie</p>
+            <div className="flex flex-wrap gap-2">
+              {FR_CATEGORIES.map((c) => {
+                const on = categories.includes(c);
+                return (
+                  <button
+                    key={c}
+                    onClick={() => toggle(c)}
+                    aria-pressed={on}
+                    className={`min-h-11 inline-flex items-center gap-2 rounded-full border px-3.5 font-semibold transition-colors ${
+                      on
+                        ? "border-[var(--fr-brass)] bg-[color-mix(in_srgb,var(--fr-brass)_14%,var(--fr-ink))] text-[var(--fr-fg)]"
+                        : "border-[var(--fr-line)] bg-[var(--fr-ink)] text-[var(--fr-muted)]"
+                    }`}
+                  >
+                    {c}
+                    <span className={`text-xs tabular-nums ${on ? "text-[var(--fr-brass)]" : ""}`}>{countFrancottinaWords([c])}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-[var(--fr-muted)]">
+              {available === 0
+                ? "Scegli almeno una categoria."
+                : available < rounds
+                  ? `Ci sono ${available} parole in queste categorie: si giocano tutte.`
+                  : `${available} parole tra cui pescare.`}
+            </p>
+          </div>
+
           <Segmented label="Parole da giocare" value={rounds} onChange={setRounds} options={ROUND_OPTIONS.map((v) => [v, String(v)])} />
           <Segmented label="Tempo per tentativo" value={seconds} onChange={setSeconds} options={TIMER_OPTIONS} />
 
           <button
             onClick={onStart}
-            className="fr-display font-extrabold text-[22px] tracking-wider bg-[var(--fr-brass)] text-[var(--fr-paper-ink)] rounded-xl py-4 active:scale-[0.98] transition-transform"
+            disabled={available === 0}
+            className="fr-display font-extrabold text-[22px] tracking-wider bg-[var(--fr-brass)] text-[var(--fr-paper-ink)] rounded-xl py-4 active:scale-[0.98] transition-transform disabled:opacity-40"
           >
             Si gioca
           </button>
@@ -329,7 +372,9 @@ function Board({ game, seconds, play, onUndo, canUndo, onExit }: BoardProps) {
         {/* Header */}
         <div className="flex items-center justify-between text-xs text-[var(--fr-muted)] mb-2">
           <button onClick={() => setConfirmExit(true)} className="py-2 pr-3 active:text-[var(--fr-fg)]">Esci</button>
-          <span className="fr-eyebrow tabular-nums">Parola {game.round + 1} di {game.deck.length}</span>
+          <span className="fr-eyebrow tabular-nums">
+            <span className="text-[var(--fr-brass)]">{word.category}</span> · {game.round + 1} di {game.deck.length}
+          </span>
           <button onClick={onUndo} disabled={!canUndo} className="py-2 pl-3 active:text-[var(--fr-fg)] disabled:opacity-30">Annulla</button>
         </div>
 
