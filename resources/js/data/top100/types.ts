@@ -9,7 +9,7 @@ export interface Top100Item {
   aliases?: string[];    // altri modi in cui i giocatori possono dirlo
 }
 
-export type Top100Group = "persone" | "nomi" | "cinema-giochi" | "cibo" | "animali" | "musica" | "oggetti" | "web" | "mondo";
+export type Top100Group = "persone" | "nomi" | "cinema-giochi" | "cibo" | "animali" | "musica" | "oggetti" | "web" | "mondo" | "sport" | "scienza" | "curiosita" | "fantasia";
 
 export interface Top100Category {
   id: string;

@@ -41,7 +41,6 @@ export const QDCP_CATEGORIES: QdcpCategory[] = [
   "Animale",
   "Libro",
   "Marchio",
-  "Modo di dire",
   "Mestiere",
 ];
 

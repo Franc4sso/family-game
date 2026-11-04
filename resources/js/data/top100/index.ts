@@ -20,6 +20,10 @@ export const TOP100_GROUP_LABELS: Record<Top100Group, string> = {
   oggetti: "Oggetti e tecnologia",
   web: "Web",
   mondo: "Mondo",
+  sport: "Sport",
+  scienza: "Scienza e parole",
+  curiosita: "Curiosità",
+  fantasia: "Personaggi di fantasia",
 };
 
 export type { Top100Category, Top100Group, Top100Item } from "./types";

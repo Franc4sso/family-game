@@ -30,6 +30,7 @@ import type { RuboQuestion } from "@/data/ruboQuestions";
 import type { MysteryCharacter } from "@/data/charactersQuestions";
 import type { HLItem } from "@/data/higherLowerItems";
 import type { QdcpCard } from "@/data/qdcpCards";
+import type { RickFact } from "@/data/rickFacts";
 
 export type GameMode =
   | "master"
@@ -41,7 +42,8 @@ export type GameMode =
   | "top100"
   | "asta"
   | "qdcp"
-  | "francottina";
+  | "francottina"
+  | "rick";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 
@@ -152,6 +154,45 @@ export interface QdcpState {
   results: QdcpCardResult[];
 }
 
+// ─── NON LO SO RICK ───
+
+export interface RickPlayer {
+  name: string;
+  color: string;
+  score: number;
+}
+
+/** Una risposta in gioco: `authors` vuoto = la verità; due giocatori possono aver scritto la stessa. */
+export interface RickAnswer {
+  text: string;
+  authors: number[];
+}
+
+/**
+ * Stato di "Non lo so Rick": a ogni giro un giocatore fa Rick, sceglie un
+ * fatto vero e folle, gli altri inventano una risposta falsa passandosi il
+ * telefono, poi tutti votano quella vera. Rick indovina l'autore di una
+ * risposta falsa.
+ */
+export interface RickState {
+  players: RickPlayer[];
+  deck: RickFact[];          // fatti ancora da pescare
+  rounds: number;
+  round: number;             // giro corrente, da 0
+  rick: number;              // indice del giocatore che fa Rick
+  options: RickFact[];       // fatti tra cui Rick sceglie
+  fact: RickFact | null;
+  fakes: string[];           // risposta inventata per giocatore ("" per Rick)
+  knew: boolean[];           // per giocatore: ha scritto la verità mentre inventava, quindi l'ha già indovinata
+  writeIndex: number;        // posizione in rickWriters()
+  answers: RickAnswer[];     // mescolate, verità compresa
+  votes: (number | null)[];  // per giocatore: indice in answers
+  guess: { answer: number; player: number } | null;
+  revealIndex: number;       // posizione in rickRevealOrder()
+  deltas: number[];          // punti dell'ultimo giro, per giocatore
+  phase: "pick" | "write" | "vote" | "guess" | "reveal" | "truth" | "end";
+}
+
 // ─── ASTA FOLLE ───
 
 export interface AstaLot {
@@ -206,6 +247,7 @@ export interface GameState {
   top100: Top100State | null;
   asta: AstaState | null;
   qdcp: QdcpState | null;
+  rick: RickState | null;
   currentRound: Round | null;
   roundHistory: Round[];
 }
@@ -220,6 +262,7 @@ export const initialGameState: GameState = {
   top100: null,
   asta: null,
   qdcp: null,
+  rick: null,
   currentRound: null,
   roundHistory: [],
 };

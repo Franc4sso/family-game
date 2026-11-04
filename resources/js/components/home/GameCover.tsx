@@ -184,5 +184,24 @@ export function GameCover({ id }: { id: GameId }) {
           </div>
         </div>
       );
+    case "rick":
+      return (
+        <div className="flex h-full w-full items-end justify-between gap-3 overflow-hidden rounded-[18px] bg-[#FF3E8A] px-[18px] py-4 text-left">
+          <div className="flex flex-col gap-1">
+            <span className="font-['Shrikhand'] text-[34px] leading-[1] whitespace-nowrap text-[#1B0F1F] md:text-[40px]">
+              Non lo so
+              <br />
+              Rick
+            </span>
+            <span className={`${META} text-[#3D0A22]`}>Bluff · 3–10 giocatori</span>
+          </div>
+          <span
+            className="mb-3 -rotate-12 rounded-[10px] border-[3px] border-[#1B0F1F] bg-[#FFF0E0] px-2.5 py-1 font-['Rubik'] text-[13px] font-extrabold tracking-[0.06em] whitespace-nowrap text-[#1B0F1F]"
+            aria-hidden="true"
+          >
+            SEMBRA FALSO
+          </span>
+        </div>
+      );
   }
 }

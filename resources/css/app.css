@@ -116,6 +116,22 @@ body {
     --color-qd-faint: #4F8A68;
     --color-qd-pale: #E3F5E8;
 
+    /* Non lo so Rick: prugna notte, fucsia neon, timbro "sembra falso", Shrikhand */
+    --font-rick: 'Shrikhand', Georgia, serif;
+    --font-rick-ui: 'Rubik', ui-sans-serif, system-ui, sans-serif;
+    --color-rick-plum: #1B0F1F;
+    --color-rick-deep: #120914;
+    --color-rick-panel: #2A1730;
+    --color-rick-line: #4A3050;
+    --color-rick-pink: #FF3E8A;
+    --color-rick-pink-soft: #FF7AB0;
+    --color-rick-pink-deep: #B0185A;
+    --color-rick-cream: #FFF0E0;
+    --color-rick-lime: #D7F45B;
+    --color-rick-muted: #C9AFC4;
+    --color-rick-pale: #E8D6E3;
+    --color-rick-dim: #8E7389;
+
     /* Indovina il Numero: turchese, tessere del contatore in Anton */
     --font-gn: 'Anton', 'Arial Narrow', sans-serif;
     --font-gn-ui: 'Barlow', ui-sans-serif, system-ui, sans-serif;
@@ -355,7 +371,8 @@ body {
 .top-press,
 .asta-press,
 .qd-press,
-.gn-press {
+.gn-press,
+.rick-press {
     touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
@@ -367,7 +384,8 @@ body {
 .top-press:active:not(:disabled),
 .asta-press:active:not(:disabled),
 .qd-press:active:not(:disabled),
-.gn-press:active:not(:disabled) { transform: scale(0.97); }
+.gn-press:active:not(:disabled),
+.rick-press:active:not(:disabled) { transform: scale(0.97); }
 
 @keyframes feud-flip {
     from { transform: perspective(600px) rotateX(-90deg); }
@@ -393,7 +411,7 @@ body {
 .feud-up { animation: feud-up 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
-    .feud-press, .myst-press, .rubo-press, .top-press, .asta-press, .qd-press, .gn-press { transition: none; }
+    .feud-press, .myst-press, .rubo-press, .top-press, .asta-press, .qd-press, .gn-press, .rick-press { transition: none; }
     .feud-flip, .feud-slam, .feud-stamp, .feud-stamp-scrim, .feud-up { animation: none; }
 }
 
@@ -532,4 +550,18 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
     .gn-flip, .gn-q { animation: none; }
+}
+
+/* Non lo so Rick: il timbro che cala sulla carta, la verità che sale */
+@keyframes rick-stamp {
+    from { transform: scale(2.4) rotate(-22deg); opacity: 0; }
+    to { transform: rotate(-10deg); opacity: 1; }
+}
+.rick-stamp { transform: rotate(-10deg); animation: rick-stamp 420ms cubic-bezier(0.16, 1, 0.3, 1) 280ms both; }
+.rick-card { animation: qd-open 460ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.rick-pane { animation: asta-pane 260ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.rick-up { animation: feud-up 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .rick-stamp, .rick-card, .rick-pane, .rick-up { animation: none; }
 }

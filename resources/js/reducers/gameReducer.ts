@@ -1,4 +1,4 @@
-import type { GameState } from "@/types/game.types";
+import type { GameState, RickAnswer, RickState } from "@/types/game.types";
 import type { GameAction } from "@/types/actions.types";
 import { areAllAnswersRevealed, calculateRoundPoints } from "@/services/gameLogic";
 import { matchAnswer, matchAnswerForFaceOff } from "@/services/matchingService";
@@ -24,6 +24,38 @@ import {
   astaMaxBid,
 } from "@/services/astaService";
 import { QDCP_MAX_CLUES, QDCP_TEAM_COLORS, qdcpPoints } from "@/services/qdcpService";
+import {
+  RICK_MAX_ANSWER_LENGTH,
+  RICK_OPTIONS,
+  RICK_PLAYER_COLORS,
+  isTruth,
+  normalizeAnswer,
+  rickFakeIndexes,
+  rickRevealOrder,
+  rickRoundDeltas,
+  rickWriters,
+} from "@/services/rickService";
+
+/** Prepara il giro `round`: Rick a rotazione e i fatti tra cui scegliere. */
+function startRickRound(r: RickState, round: number): RickState {
+  return {
+    ...r,
+    round,
+    rick: round % r.players.length,
+    options: r.deck.slice(0, RICK_OPTIONS),
+    deck: r.deck.slice(RICK_OPTIONS),
+    fact: null,
+    fakes: r.players.map(() => ""),
+    knew: r.players.map(() => false),
+    writeIndex: 0,
+    answers: [],
+    votes: r.players.map(() => null),
+    guess: null,
+    revealIndex: 0,
+    deltas: r.players.map(() => 0),
+    phase: "pick",
+  };
+}
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -44,6 +76,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         top100: null,
         asta: null,
         qdcp: null,
+        rick: null,
         teamA: { ...state.teamA, score: 0 },
         teamB: { ...state.teamB, score: 0 },
         currentRound: null,
@@ -426,6 +459,131 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case "QDCP_RESTART":
       // Nuova partita: si torna alla preparazione restando in questa modalità
       return { ...state, qdcp: null };
+
+    // ─────────────────── NON LO SO RICK ───────────────────
+    case "RICK_SETUP": {
+      const { names, deck, rounds } = action.payload;
+      if (names.length < 3 || deck.length === 0 || rounds < 1) return state;
+      const base: RickState = {
+        players: names.map((name, i) => ({
+          name: name.trim(),
+          color: RICK_PLAYER_COLORS[i % RICK_PLAYER_COLORS.length],
+          score: 0,
+        })),
+        deck,
+        rounds,
+        round: 0,
+        rick: 0,
+        options: [],
+        fact: null,
+        fakes: [],
+        knew: [],
+        writeIndex: 0,
+        answers: [],
+        votes: [],
+        guess: null,
+        revealIndex: 0,
+        deltas: [],
+        phase: "pick",
+      };
+      return { ...state, gameMode: "rick", rick: startRickRound(base, 0) };
+    }
+
+    case "RICK_REROLL": {
+      // Altri fatti: quelli scartati tornano in fondo al mazzo
+      const r = state.rick;
+      if (!r || r.phase !== "pick") return state;
+      const deck = [...r.deck, ...r.options];
+      return { ...state, rick: { ...r, options: deck.slice(0, RICK_OPTIONS), deck: deck.slice(RICK_OPTIONS) } };
+    }
+
+    case "RICK_PICK": {
+      const r = state.rick;
+      const fact = r?.options[action.payload.index];
+      if (!r || r.phase !== "pick" || !fact) return state;
+      const others = r.options.filter((_, i) => i !== action.payload.index);
+      return { ...state, rick: { ...r, fact, options: [], deck: [...r.deck, ...others], phase: "write" } };
+    }
+
+    case "RICK_SUBMIT_FAKE": {
+      const r = state.rick;
+      if (!r || r.phase !== "write" || !r.fact) return state;
+      const writers = rickWriters(r);
+      const player = writers[r.writeIndex];
+      const text = action.payload.text.trim().slice(0, RICK_MAX_ANSWER_LENGTH);
+      if (player === undefined || !text || isTruth(text, r.fact)) return state;
+      const fakes = r.fakes.map((f, i) => (i === player ? text : f));
+      const knew = r.players.map((_, i) => (i === player ? action.payload.knew : (r.knew[i] ?? false)));
+      if (r.writeIndex + 1 < writers.length) {
+        return { ...state, rick: { ...r, fakes, knew, writeIndex: r.writeIndex + 1 } };
+      }
+      // Hanno scritto tutti: risposte uguali diventano una sola, poi si aggiunge la verità e si mescola
+      const merged: RickAnswer[] = [];
+      writers.forEach((p) => {
+        const same = merged.find((a) => normalizeAnswer(a.text) === normalizeAnswer(fakes[p]));
+        if (same) same.authors.push(p);
+        else merged.push({ text: fakes[p], authors: [p] });
+      });
+      merged.push({ text: r.fact.answer, authors: [] });
+      const order = action.payload.order.filter((i) => i < merged.length);
+      const answers = order.length === merged.length && new Set(order).size === merged.length ? order.map((i) => merged[i]) : merged;
+      // Chi ha scritto la verità l'ha già indovinata: il suo voto va da solo sulla verità
+      const truth = answers.findIndex((a) => a.authors.length === 0);
+      const votes = r.players.map((_, i) => (knew[i] ? truth : null));
+      return { ...state, rick: { ...r, fakes, knew, answers, votes, phase: "vote" } };
+    }
+
+    case "RICK_VOTE": {
+      const r = state.rick;
+      const { player, answer } = action.payload;
+      // Non si vota la propria risposta, Rick non vota, e chi sapeva già la verità nemmeno
+      if (!r || r.phase !== "vote" || player === r.rick || !r.players[player] || r.knew[player]) return state;
+      if (!r.answers[answer] || r.answers[answer].authors.includes(player)) return state;
+      return { ...state, rick: { ...r, votes: r.votes.map((v, i) => (i === player ? answer : v)) } };
+    }
+
+    case "RICK_CONFIRM_VOTES": {
+      const r = state.rick;
+      if (!r || r.phase !== "vote" || rickWriters(r).some((p) => r.votes[p] === null)) return state;
+      return { ...state, rick: { ...r, phase: "guess" } };
+    }
+
+    case "RICK_GUESS": {
+      const r = state.rick;
+      const { answer, player } = action.payload;
+      if (!r || r.phase !== "guess" || !rickFakeIndexes(r).includes(answer) || !rickWriters(r).includes(player)) return state;
+      return { ...state, rick: { ...r, guess: { answer, player }, revealIndex: 0, phase: "reveal" } };
+    }
+
+    case "RICK_REVEAL_NEXT": {
+      const r = state.rick;
+      if (!r || r.phase !== "reveal") return state;
+      if (r.revealIndex + 1 < rickRevealOrder(r).length) {
+        return { ...state, rick: { ...r, revealIndex: r.revealIndex + 1 } };
+      }
+      // Ultima risposta inventata scoperta: tocca alla verità, e si assegnano i punti del giro
+      const deltas = rickRoundDeltas(r);
+      return {
+        ...state,
+        rick: {
+          ...r,
+          deltas,
+          players: r.players.map((p, i) => ({ ...p, score: p.score + deltas[i] })),
+          phase: "truth",
+        },
+      };
+    }
+
+    case "RICK_NEXT_ROUND": {
+      const r = state.rick;
+      if (!r || r.phase !== "truth") return state;
+      if (r.round + 1 >= r.rounds || r.deck.length === 0) return { ...state, rick: { ...r, phase: "end" } };
+      return { ...state, rick: startRickRound(r, r.round + 1) };
+    }
+
+    case "RICK_RESTART":
+      // Nuova partita: si torna alla preparazione restando in questa modalità
+      return { ...state, rick: null };
 
     // ─────────────────── MODALITÀ TOP 100 ───────────────────
     case "TOP100_SETUP": {
@@ -1034,6 +1192,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         top100: null,
         asta: null,
         qdcp: null,
+        rick: null,
         currentRound: null,
         roundHistory: [],
       };

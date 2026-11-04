@@ -19,6 +19,7 @@ import { Top100Screen } from "./top100/Top100Screen";
 import { AstaGame } from "./asta/AstaGame";
 import { QdcpScreen } from "./qdcp/QdcpScreen";
 import { FrancottinaScreen } from "./game/FrancottinaScreen";
+import { RickScreen } from "./rick/RickScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -48,6 +49,10 @@ export function App() {
   // Francottina: da 2 a 6 squadre, gestisce squadre e punteggi per conto suo
   if (state.gameMode === "francottina") {
     return <FrancottinaScreen dispatch={dispatch} />;
+  }
+  // Non lo so Rick ha giocatori singoli (da 3 a 10), nominati nella sua schermata iniziale
+  if (state.gameMode === "rick") {
+    return <RickScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
   }
 
   // Personaggio Misterioso ha da 2 a 6 squadre: le nomina nella sua schermata iniziale

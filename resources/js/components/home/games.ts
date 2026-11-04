@@ -9,7 +9,8 @@ export type GameId =
   | "top100"
   | "asta"
   | "qdcp"
-  | "francottina";
+  | "francottina"
+  | "rick";
 
 export interface GameInfo {
   id: GameId;
@@ -155,6 +156,20 @@ export const GAMES: GameInfo[] = [
       ink: "#F4EFE2",
       accent: "#E4B553",
       accentInk: "#141936",
+    },
+  },
+  {
+    id: "rick",
+    name: "Non lo so Rick",
+    description:
+      "Fatti veri ma folli con una parola mancante. Inventa una risposta falsa credibile, poi tutti votano quella vera. Rick sceglie il fatto e indovina chi ha scritto cosa.",
+    chips: ["3–10 giocatori", "Un telefono", "Anche +18"],
+    modes: [{ label: "Non lo so Rick", mode: "rick" }],
+    sheet: {
+      bg: "#1B0F1F",
+      ink: "#FF3E8A",
+      accent: "#FF3E8A",
+      accentInk: "#1B0F1F",
     },
   },
 ];

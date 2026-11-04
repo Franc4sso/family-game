@@ -3,6 +3,7 @@ import type { RuboQuestion } from "@/data/ruboQuestions";
 import type { MysteryCharacter } from "@/data/charactersQuestions";
 import type { HLItem } from "@/data/higherLowerItems";
 import type { QdcpCard } from "@/data/qdcpCards";
+import type { RickFact } from "@/data/rickFacts";
 
 export type GameAction =
   | { type: "SET_GAME_MODE"; payload: { mode: GameMode } }
@@ -40,6 +41,16 @@ export type GameAction =
   | { type: "QDCP_GIVE_UP" }
   | { type: "QDCP_NEXT" }
   | { type: "QDCP_RESTART" }
+  | { type: "RICK_SETUP"; payload: { names: string[]; deck: RickFact[]; rounds: number } }
+  | { type: "RICK_REROLL" }
+  | { type: "RICK_PICK"; payload: { index: number } }
+  | { type: "RICK_SUBMIT_FAKE"; payload: { text: string; order: number[]; knew: boolean } }
+  | { type: "RICK_VOTE"; payload: { player: number; answer: number } }
+  | { type: "RICK_CONFIRM_VOTES" }
+  | { type: "RICK_GUESS"; payload: { answer: number; player: number } }
+  | { type: "RICK_REVEAL_NEXT" }
+  | { type: "RICK_NEXT_ROUND" }
+  | { type: "RICK_RESTART" }
   | { type: "START_ROUND"; payload: { category: string; answers: Answer[] } }
   | { type: "FACEOFF_REVEAL"; payload: { teamA_answerIndex?: number | null; teamB_answerIndex?: number | null; teamA_custom?: string | null; teamB_custom?: string | null } }
   | { type: "FACEOFF_NO_MASTER"; payload: { teamA_answer: string; teamB_answer: string } }
