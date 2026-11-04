@@ -39,7 +39,25 @@ export function AstaBoard({ state, onOpenBanco, onExpandPhoto }: AstaBoardProps)
         </span>
       </header>
 
-      <LotPhoto src={lot.image} alt={lot.name} onExpand={onExpandPhoto} className="rounded-2xl" />
+      {lot.surprise === "buio" ? (
+        <figure className="relative m-0 flex h-[min(44dvh,360px)] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl bg-asta-ink text-asta-mustard">
+          <span className="asta-slam text-[96px] leading-none font-extrabold" aria-hidden>
+            ?
+          </span>
+          <span className="font-asta-mono text-xs font-bold tracking-[0.12em]">LOTTO AL BUIO</span>
+        </figure>
+      ) : (
+        <LotPhoto src={lot.image} alt={lot.name} onExpand={onExpandPhoto} className="rounded-2xl">
+          {lot.surprise === "pacco" && (
+            <span className="absolute top-2.5 left-2.5 flex h-[72px] w-[72px] -rotate-6 flex-col items-center justify-center rounded-xl border-2 border-dashed border-asta-mustard bg-asta-ink/90 text-asta-mustard">
+              <span className="text-[30px] leading-none font-extrabold" aria-hidden>
+                ?
+              </span>
+              <span className="font-asta-mono text-[9px] font-bold">+1 NASCOSTO</span>
+            </span>
+          )}
+        </LotPhoto>
+      )}
 
       <section className="flex flex-col gap-1.5 px-0.5">
         <span className="flex items-center gap-2">
@@ -47,9 +65,31 @@ export function AstaBoard({ state, onOpenBanco, onExpandPhoto }: AstaBoardProps)
             LOTTO {lotNumber(state.current)}
           </span>
           <span className="font-asta-mono text-[11px] font-bold text-asta-brown">{categoryLabel(lot.category).toUpperCase()}</span>
+          {lot.surprise && (
+            <span className="rounded-[5px] bg-asta-ink px-2 pt-[3px] pb-0.5 font-asta-mono text-[11px] font-bold text-asta-mustard">
+              {lot.surprise === "buio" ? "AL BUIO" : "PACCO MISTERIOSO"}
+            </span>
+          )}
         </span>
-        <h1 className="m-0 text-[25px] leading-[1.05] font-extrabold tracking-[-0.02em]">{lot.name}</h1>
-        {lot.description && <p className="m-0 text-sm leading-snug font-medium text-asta-ink-soft">{lot.description}</p>}
+        {lot.surprise === "buio" ? (
+          <>
+            <h1 className="m-0 text-[25px] leading-[1.05] font-extrabold tracking-[-0.02em]">Lotto al buio</h1>
+            <p className="m-0 text-sm leading-snug font-medium text-asta-ink-soft">
+              Niente foto, niente nome: solo gli indizi del banditore. Si scopre dopo il martello.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="m-0 text-[25px] leading-[1.05] font-extrabold tracking-[-0.02em]">
+              {lot.name}
+              {lot.surprise === "pacco" && <span className="text-asta-red"> + ???</span>}
+            </h1>
+            {lot.description && <p className="m-0 text-sm leading-snug font-medium text-asta-ink-soft">{lot.description}</p>}
+            {lot.surprise === "pacco" && (
+              <p className="m-0 text-sm leading-snug font-bold text-asta-ink">Nel pacco c’è un secondo oggetto: si scopre dopo il martello.</p>
+            )}
+          </>
+        )}
       </section>
 
       <ul

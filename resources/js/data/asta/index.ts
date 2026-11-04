@@ -16,6 +16,10 @@ export const ASTA_CATEGORY_LABELS: Record<AstaCategory, string> = {
   trash: "Trash",
   collezione: "Collezione",
   curiosita: "Curiosità",
+  italia: "Made in Italy",
+  cimeli: "Cimeli famosi",
+  gusto: "Cibo e vino",
+  giocattoli: "Giocattoli vintage",
 };
 
 export type { AstaCategory, AstaItem } from "./types";

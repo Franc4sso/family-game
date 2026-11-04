@@ -47,7 +47,7 @@ export function AstaGame({ gameState, dispatch, onUndo, canUndo }: AstaGameProps
       ) : (
         <AstaBoard state={state} onOpenBanco={() => setView("banco")} onExpandPhoto={() => setFullPhoto(true)} />
       )}
-      {fullPhoto && lot && (
+      {fullPhoto && lot && lot.surprise !== "buio" && (
         <AstaFullPhoto src={lot.image} title={lot.name} lotLabel={lotLabel(state, state.current)} onClose={() => setFullPhoto(false)} />
       )}
     </>

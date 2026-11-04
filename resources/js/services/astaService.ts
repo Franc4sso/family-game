@@ -132,12 +132,75 @@ export const itemToLot = (item: AstaItem, custom = false): AstaLot => ({
   custom,
 });
 
+// ─── Bilanciamento dei prezzi ───
+//
+// I valori veri vanno da pochi euro a decine di migliaia: pescando a caso può
+// capitare una serata con tre gioielli e nient'altro (vince chi li prende) o
+// tutta roba da mercatino (piatta). Peschiamo invece per fasce, così in ogni
+// serata ci sono bidoni, lotti medi e qualche colpo grosso.
+
+type Band = "bidone" | "basso" | "medio" | "alto" | "colpo";
+
+export const astaBand = (value: number): Band =>
+  value <= 100 ? "bidone" : value <= 1500 ? "basso" : value <= 8000 ? "medio" : value <= 25000 ? "alto" : "colpo";
+
+/** Peso di ogni fascia nella serata (il "colpo" > 25.000 € è al massimo uno, e non sempre). */
+const BAND_WEIGHTS: [Band, number][] = [
+  ["bidone", 0.2],
+  ["basso", 0.25],
+  ["medio", 0.35],
+  ["alto", 0.2],
+];
+
+/** Pesca `count` lotti dal catalogo rispettando le fasce; se una fascia è scarsa, completa con il resto. */
+function pickBalanced(catalog: AstaItem[], count: number): AstaItem[] {
+  if (count <= 0) return [];
+  const pools = new Map<Band, AstaItem[]>();
+  for (const item of shuffle(catalog)) {
+    const b = astaBand(item.value);
+    pools.set(b, [...(pools.get(b) ?? []), item]);
+  }
+  const take = (b: Band, n: number) => (pools.get(b) ?? []).splice(0, n);
+
+  const picked: AstaItem[] = [];
+  // Il colpo grosso c'è una serata su tre: emozione, senza decidere sempre la partita
+  if (count >= 6 && Math.random() < 0.33) picked.push(...take("colpo", 1));
+  for (const [band, w] of BAND_WEIGHTS) picked.push(...take(band, Math.max(1, Math.round(count * w))));
+
+  // Troppi: togli a caso; pochi: completa con quel che resta (i colpi per ultimi)
+  const out = shuffle(picked).slice(0, count);
+  const rest = [...shuffle(BAND_WEIGHTS.flatMap(([b]) => pools.get(b) ?? [])), ...(pools.get("colpo") ?? [])];
+  return [...out, ...rest].slice(0, count);
+}
+
+/** Nome completo del lotto, compreso l'oggetto nascosto nel pacco (da usare dopo il martello). */
+export const fullLotName = (lot: AstaLot) => (lot.extra ? `${lot.name} + ${lot.extra.name}` : lot.name);
+
 /**
  * Sceglie i lotti della serata: tutti quelli del master (se usati), poi il
- * catalogo a caso fino al numero richiesto. L'ordine finale è mescolato.
+ * catalogo per fasce di prezzo fino al numero richiesto. Con le sorprese
+ * accese, un lotto va all'asta "al buio" (senza foto né nome) e uno diventa
+ * un "pacco misterioso" con un secondo oggetto nascosto, che vale insieme.
  */
-export function pickAstaLots(catalog: AstaItem[], mine: AstaItem[], count: number): AstaLot[] {
+export function pickAstaLots(catalog: AstaItem[], mine: AstaItem[], count: number, surprises = false): AstaLot[] {
   const own = shuffle(mine).slice(0, count).map((i) => itemToLot(i, true));
-  const fromCatalog = shuffle(catalog).slice(0, Math.max(0, count - own.length)).map((i) => itemToLot(i));
-  return shuffle([...own, ...fromCatalog]);
+  const fromCatalog = pickBalanced(catalog, count - own.length);
+  const lots = shuffle([...own, ...fromCatalog.map((i) => itemToLot(i))]);
+  if (!surprises || lots.length < 6) return lots;
+
+  // Il pacco nasconde un oggetto piccolo o medio, per non sbilanciare la serata
+  const used = new Set(lots.map((l) => l.id));
+  const hidden = shuffle(catalog).find((i) => !used.has(i.id) && i.value <= 8000);
+  const [buio, pacco] = shuffle(lots.map((_, i) => i).filter((i) => !lots[i].custom));
+  if (buio !== undefined) lots[buio] = { ...lots[buio], surprise: "buio" };
+  if (pacco !== undefined && hidden) {
+    const l = lots[pacco];
+    lots[pacco] = {
+      ...l,
+      surprise: "pacco",
+      value: l.value + hidden.value,
+      extra: { name: hidden.name, image: hidden.image, value: hidden.value },
+    };
+  }
+  return lots;
 }

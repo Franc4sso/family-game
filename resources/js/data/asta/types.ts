@@ -2,7 +2,8 @@
  * Un lotto del catalogo di Asta Folle. Il valore resta segreto fino alla
  * rivelazione finale.
  */
-export type AstaCategory = "lusso" | "moda" | "tecnologia" | "casa" | "trash" | "collezione" | "curiosita";
+export type AstaCategory = "lusso" | "moda" | "tecnologia" | "casa" | "trash" | "collezione" | "curiosita"
+  | "italia" | "cimeli" | "gusto" | "giocattoli";
 
 export interface AstaItem {
   id: string;            // kebab-case, unico

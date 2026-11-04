@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { AstaScreen, IconBack, IconChevron, IconClose, IconHammer, Paddle, btnRed } from "./parts";
 import { AstaMyItems } from "./AstaMyItems";
 import { AstaCatalogBrowser } from "./AstaCatalogBrowser";
-import { ASTA_CATALOG } from "@/data/asta";
-import type { AstaItem } from "@/data/asta";
+import { ASTA_CATALOG, ASTA_CATEGORY_LABELS } from "@/data/asta";
+import type { AstaCategory, AstaItem } from "@/data/asta";
 import { listCustomItems } from "@/services/astaCustomItems";
 import {
   ASTA_BONUS_AFFARE,
@@ -29,6 +29,10 @@ interface AstaSetupProps {
 type Source = "both" | "catalog" | "mine";
 type Tab = "teams" | "rules" | "lots";
 
+const CATEGORIES = (Object.keys(ASTA_CATEGORY_LABELS) as AstaCategory[])
+  .map((c) => [c, ASTA_CATALOG.filter((i) => i.category === c).length] as const)
+  .filter(([, n]) => n > 0);
+
 const SOURCES: [Source, string][] = [
   ["both", "Tutti"],
   ["catalog", "Catalogo"],
@@ -39,6 +43,8 @@ export function AstaSetup({ dispatch }: AstaSetupProps) {
   const [names, setNames] = useState<string[]>(["", ""]);
   const [affare, setAffare] = useState(true);
   const [bidone, setBidone] = useState(true);
+  const [surprises, setSurprises] = useState(true);
+  const [cats, setCats] = useState<Set<AstaCategory>>(() => new Set(CATEGORIES.map(([c]) => c)));
   const [source, setSource] = useState<Source>("both");
   const [mine, setMine] = useState<AstaItem[]>([]);
   const [managing, setManaging] = useState(false);
@@ -57,7 +63,7 @@ export function AstaSetup({ dispatch }: AstaSetupProps) {
   const needed = names.length * ASTA_LOTS_PER_TEAM;
   const wanted = needed + ASTA_SPARE_LOTS;
   const ownPool = source === "catalog" ? [] : mine;
-  const catalogPool = source === "mine" ? [] : ASTA_CATALOG;
+  const catalogPool = source === "mine" ? [] : ASTA_CATALOG.filter((i) => cats.has(i.category));
   const available = ownPool.length + catalogPool.length;
   const lotCount = Math.min(wanted, available);
   const fromMine = Math.min(ownPool.length, lotCount);
@@ -74,7 +80,7 @@ export function AstaSetup({ dispatch }: AstaSetupProps) {
     }
     dispatch({
       type: "ASTA_SETUP",
-      payload: { teamNames: finalNames, bonuses: { affare, bidone }, lots: pickAstaLots(catalogPool, ownPool, lotCount) },
+      payload: { teamNames: finalNames, bonuses: { affare, bidone }, lots: pickAstaLots(catalogPool, ownPool, lotCount, surprises) },
     });
   };
 
@@ -231,6 +237,23 @@ export function AstaSetup({ dispatch }: AstaSetupProps) {
             />
           </div>
           <p className="m-0 text-[13px] font-semibold text-asta-ink-muted">Tocca un premio per accenderlo o spegnerlo.</p>
+          <button
+            type="button"
+            aria-pressed={surprises}
+            onClick={() => setSurprises((v) => !v)}
+            className={`asta-press flex items-center gap-3.5 rounded-2xl bg-asta-ink px-4 py-3.5 text-left text-asta-cream transition-opacity ${surprises ? "" : "opacity-40"}`}
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-asta-mustard text-xl font-extrabold text-asta-mustard" aria-hidden>
+              ?
+            </span>
+            <span className="flex flex-col gap-0.5">
+              <span className="font-asta-mono text-[10px] font-bold text-asta-muted">SORPRESE · {surprises ? "ACCESE" : "SPENTE"}</span>
+              <span className="text-[17px] leading-tight font-extrabold">Lotto al buio e pacco misterioso</span>
+              <span className="text-xs leading-snug font-semibold text-[#D9CCBD]">
+                Un lotto senza foto né nome, solo indizi. Uno con dentro un secondo oggetto nascosto.
+              </span>
+            </span>
+          </button>
         </section>
       )}
 
@@ -255,6 +278,38 @@ export function AstaSetup({ dispatch }: AstaSetupProps) {
               </button>
             ))}
           </div>
+          {source !== "mine" && (
+            <>
+              <h2 className="m-0 text-[17px] font-extrabold">Categorie del catalogo</h2>
+              <div role="group" aria-label="Categorie del catalogo" className="flex flex-wrap gap-1.5">
+                {CATEGORIES.map(([c, n]) => {
+                  const on = cats.has(c);
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => {
+                        setError(null);
+                        setCats((prev) => {
+                          const next = new Set(prev);
+                          if (on) next.delete(c);
+                          else next.add(c);
+                          return next;
+                        });
+                      }}
+                      className={`asta-press flex h-10 items-center gap-1.5 rounded-full px-3.5 text-sm transition-colors ${
+                        on ? "bg-asta-ink font-extrabold text-asta-cream" : "font-bold text-asta-ink-soft shadow-[inset_0_0_0_1.5px_var(--color-asta-paper-line)]"
+                      }`}
+                    >
+                      {ASTA_CATEGORY_LABELS[c]}
+                      <span className="font-asta-mono text-[11px] font-bold opacity-60">{n}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
           <div className="flex items-center gap-3.5 rounded-l-md rounded-r-[30px] bg-asta-ink px-4 py-3.5 text-asta-cream">
             <span className="h-3.5 w-3.5 shrink-0 rounded-full bg-asta-paper" aria-hidden />
             <span className="flex flex-col">

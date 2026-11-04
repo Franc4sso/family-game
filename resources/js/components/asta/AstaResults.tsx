@@ -11,13 +11,35 @@ import {
   astaTeamSales,
   formatCredits,
   formatEuro,
+  fullLotName,
 } from "@/services/astaService";
-import type { AstaState } from "@/types/game.types";
+import type { AstaLot, AstaState } from "@/types/game.types";
 import type { GameAction } from "@/types/actions.types";
 
 interface Props {
   state: AstaState;
   dispatch: React.Dispatch<GameAction>;
+}
+
+/** Nel pacco misterioso, la foto dell'oggetto nascosto in un angolo. */
+function ExtraInset({ lot }: { lot: AstaLot }) {
+  if (!lot.extra) return null;
+  return (
+    <span className="absolute right-2.5 bottom-2.5 flex flex-col items-center gap-1 rounded-xl bg-asta-ink/90 p-1.5 text-asta-mustard">
+      <img src={lot.extra.image} alt={lot.extra.name} className="h-16 w-16 rounded-lg bg-asta-photo object-contain" />
+      <span className="font-asta-mono text-[9px] font-bold">NEL PACCO</span>
+    </span>
+  );
+}
+
+/** Dopo il martello: si scopre cosa c'era al buio o nel pacco. */
+function SurpriseNote({ lot }: { lot: AstaLot }) {
+  if (!lot.surprise) return null;
+  return (
+    <p className="asta-pane m-0 self-start rounded-[5px] bg-asta-ink px-2.5 pt-1 pb-[3px] font-asta-mono text-[11px] font-bold text-asta-mustard">
+      {lot.surprise === "buio" ? "ERA UN LOTTO AL BUIO: ECCOLO" : "NEL PACCO C’ERA ANCHE UN SECONDO OGGETTO"}
+    </p>
+  );
 }
 
 const signed = (euro: number) => `${euro >= 0 ? "+" : "−"}${formatEuro(Math.abs(euro))}`;
@@ -39,7 +61,7 @@ export function AstaSold({ state, dispatch, onUndo }: Props & { onUndo: () => vo
         <span className="font-asta-mono text-xs font-bold text-asta-ink-muted">{lotLabel(state, sale.lot)}</span>
       </header>
 
-      <LotPhoto src={lot.image} alt={lot.name} height="h-[min(34dvh,270px)]" className="rounded-2xl" dim>
+      <LotPhoto src={lot.image} alt={fullLotName(lot)} height="h-[min(34dvh,270px)]" className="rounded-2xl" dim>
         <span
           className="asta-slam absolute top-1/2 left-1/2 flex h-[88px] w-[290px] flex-col items-center justify-center rounded-[10px] border-[5px] border-asta-red bg-asta-paper/90 text-asta-red"
           style={{ transform: "translate(-50%, -50%) rotate(-10deg)" }}
@@ -48,10 +70,12 @@ export function AstaSold({ state, dispatch, onUndo }: Props & { onUndo: () => vo
           <span className="text-[42px] leading-[0.95] font-extrabold tracking-[0.01em]">AGGIUDICATO</span>
           <span className="font-asta-mono text-xs font-bold">LOTTO {lotNumber(sale.lot)}</span>
         </span>
+        <ExtraInset lot={lot} />
       </LotPhoto>
+      <SurpriseNote lot={lot} />
 
       <section className="flex flex-col gap-1">
-        <h1 className="m-0 text-2xl leading-[1.08] font-extrabold tracking-[-0.02em]">{lot.name}</h1>
+        <h1 className="m-0 text-2xl leading-[1.08] font-extrabold tracking-[-0.02em]">{fullLotName(lot)}</h1>
         <p className="m-0 text-base font-semibold text-asta-ink-muted">Batte il martello. Il lotto va a</p>
       </section>
 
@@ -124,10 +148,12 @@ export function AstaReveal({ state, dispatch }: Props) {
         </span>
       </header>
 
-      <LotPhoto src={lot.image} alt={lot.name} height="h-[min(26dvh,200px)]" className="rounded-2xl" />
+      <LotPhoto src={lot.image} alt={fullLotName(lot)} height="h-[min(26dvh,200px)]" className="rounded-2xl">
+        <ExtraInset lot={lot} />
+      </LotPhoto>
 
       <div className="flex items-center gap-3">
-        <h2 className="m-0 flex-1 text-xl leading-[1.12] font-extrabold">{lot.name}</h2>
+        <h2 className="m-0 flex-1 text-xl leading-[1.12] font-extrabold">{fullLotName(lot)}</h2>
         <Paddle team={team} index={sale.team} size={40} handle />
       </div>
 
@@ -255,7 +281,7 @@ export function AstaFinal({ state, dispatch }: Props) {
               <span className="truncate text-base leading-tight font-extrabold">{state.teams[affare.team].name}</span>
               <span className="text-[22px] leading-none font-extrabold whitespace-nowrap">{signed(affare.amount)}</span>
               <span className="text-xs leading-snug font-semibold">
-                {state.lots[affare.sale.lot].name}: {formatCredits(affare.sale.price)}, vale {formatEuro(state.lots[affare.sale.lot].value)}
+                {fullLotName(state.lots[affare.sale.lot])}: {formatCredits(affare.sale.price)}, vale {formatEuro(state.lots[affare.sale.lot].value)}
               </span>
             </div>
           )}
@@ -265,7 +291,7 @@ export function AstaFinal({ state, dispatch }: Props) {
               <span className="truncate text-base leading-tight font-extrabold">{state.teams[bidone.team].name}</span>
               <span className="text-[22px] leading-none font-extrabold whitespace-nowrap">{signed(bidone.amount)}</span>
               <span className="text-xs leading-snug font-semibold">
-                {state.lots[bidone.sale.lot].name}: {formatCredits(bidone.sale.price)}, vale {formatEuro(state.lots[bidone.sale.lot].value)}
+                {fullLotName(state.lots[bidone.sale.lot])}: {formatCredits(bidone.sale.price)}, vale {formatEuro(state.lots[bidone.sale.lot].value)}
               </span>
             </div>
           )}
@@ -350,7 +376,7 @@ function AstaCatalog({ state, onBack }: { state: AstaState; onBack: () => void }
                 <span className="font-asta-mono text-[10px] font-bold text-asta-brown">
                   LOTTO {lotNumber(sale.lot)} · {categoryLabel(lot.category).toUpperCase()}
                 </span>
-                <span className="text-[15px] leading-tight font-extrabold">{lot.name}</span>
+                <span className="text-[15px] leading-tight font-extrabold">{fullLotName(lot)}</span>
                 <span className="flex justify-between font-asta-mono text-xs text-asta-ink-muted">
                   <span>pagato</span>
                   <span>{formatCredits(sale.price)}</span>
@@ -371,7 +397,7 @@ function AstaCatalog({ state, onBack }: { state: AstaState; onBack: () => void }
           <span className="font-asta-mono text-[11px] font-bold text-asta-brown">RIMASTI INVENDUTI</span>
           {state.unsold.map((i) => (
             <span key={i} className="flex justify-between gap-3 text-sm font-bold">
-              <span className="min-w-0 truncate">{state.lots[i].name}</span>
+              <span className="min-w-0 truncate">{fullLotName(state.lots[i])}</span>
               <span className="shrink-0 font-asta-mono">{formatEuro(state.lots[i].value)}</span>
             </span>
           ))}

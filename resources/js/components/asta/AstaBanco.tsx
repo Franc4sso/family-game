@@ -108,6 +108,15 @@ export function AstaBanco({ state, dispatch, onUndo, canUndo, onShowBoard }: Ast
         </button>
       </div>
 
+      {lot.surprise && (
+        <p className="m-0 rounded-2xl bg-asta-ink px-3.5 py-2.5 text-sm leading-snug font-bold text-asta-cream shadow-[inset_0_0_0_1.5px_var(--color-asta-mustard)]">
+          <span className="font-asta-mono text-[11px] text-asta-mustard">{lot.surprise === "buio" ? "LOTTO AL BUIO" : "PACCO MISTERIOSO"} · </span>
+          {lot.surprise === "buio"
+            ? "In sala non si vedono né foto né nome: dai solo gli indizi."
+            : `Nel pacco c’è anche ${lot.extra?.name} (${formatEuro(lot.extra?.value ?? 0)}). Il valore qui sopra è la somma.`}
+        </p>
+      )}
+
       {lot.clues.length > 0 && (
         <section className="flex flex-col gap-1.5 rounded-2xl px-3.5 pt-2.5 pb-3 shadow-[inset_0_0_0_1.5px_var(--color-asta-line)]">
           <span className="font-asta-mono text-[11px] font-bold text-asta-mustard">INDIZI DA DARE A VOCE</span>

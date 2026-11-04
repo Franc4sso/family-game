@@ -163,6 +163,10 @@ export interface AstaLot {
   value: number;         // euro, segreto fino alla rivelazione
   image: string;         // url (catalogo) o data URL (foto del master)
   custom?: boolean;      // aggiunto dal master
+  // Lotti a sorpresa: "buio" = niente foto né nome fino al martello;
+  // "pacco" = c'è un secondo oggetto nascosto (value è già la somma)
+  surprise?: "buio" | "pacco";
+  extra?: { name: string; image: string; value: number };
 }
 
 export interface AstaTeam {
