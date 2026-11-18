@@ -1,10 +1,10 @@
-/** Temi di From Bottom to the Top: ogni risposta va calibrata tra il polo 1 e il polo 10. */
+/** Temi di From Bottom to the Top: ogni risposta va calibrata tra il polo 1 e il numero più alto in gioco. */
 export interface DieciTheme {
   id: string;
   prompt: string;
   /** Cosa vuol dire rispondere "1". */
   low: string;
-  /** Cosa vuol dire rispondere "10". */
+  /** Cosa vuol dire rispondere con il numero più alto. */
   high: string;
 }
 

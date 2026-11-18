@@ -36,13 +36,13 @@ function Logo() {
   );
 }
 
-function ThemeCard({ theme, compact }: { theme: DieciTheme; compact?: boolean }) {
+function ThemeCard({ theme, max, compact }: { theme: DieciTheme; max: number; compact?: boolean }) {
   return (
     <div className={`dl-card ${compact ? "compact" : ""}`}>
       <p className="dl-prompt m-0">{theme.prompt}</p>
       <div className="dl-scale">
         <div className="dl-pole hi">
-          <i>10</i>
+          <i>{max}</i>
           <span>{theme.high}</span>
         </div>
         <div className="dl-pole lo">
@@ -55,11 +55,11 @@ function ThemeCard({ theme, compact }: { theme: DieciTheme; compact?: boolean })
 }
 
 /** Il sentiero che sale: dieci tappe, la bandierina sulla tua. */
-function Meter({ n }: { n: number }) {
+function Meter({ n, max }: { n: number; max: number }) {
   return (
     <div className="dl-meter" aria-hidden="true">
-      {Array.from({ length: 10 }, (_, i) => (
-        <i key={i} className={`${i < n ? "on" : ""} ${i === n - 1 ? "cur" : ""}`} style={{ "--k": i + 1 } as React.CSSProperties} />
+      {Array.from({ length: max }, (_, i) => (
+        <i key={i} className={`${i < n ? "on" : ""} ${i === n - 1 ? "cur" : ""}`} style={{ "--k": ((i + 1) * 10) / max } as React.CSSProperties} />
       ))}
     </div>
   );
@@ -159,7 +159,7 @@ export function DieciScreen({ dispatch }: DieciScreenProps) {
             <span className="dl-hand text-[22px] text-[var(--dl-hot)]">Capitano</span>
             <div className="dl-name">{captain}</div>
           </div>
-          <ThemeCard theme={round.theme} />
+          <ThemeCard theme={round.theme} max={guests.length} />
           <p className="dl-hint m-0">
             {captain} legge il tema ad alta voce e non pesca nessun numero. Poi il telefono fa il giro: ognuno guarda il suo numero in segreto.
           </p>
@@ -198,7 +198,7 @@ export function DieciScreen({ dispatch }: DieciScreenProps) {
         }
       >
         <div className="dl-body">
-          <ThemeCard theme={round.theme} compact />
+          <ThemeCard theme={round.theme} max={guests.length} compact />
           <p className="dl-hint m-0">
             {captain}, tocca i nomi dal numero <b>più basso</b> al <b>più alto</b>. Tocca una riga per liberarla.
           </p>
@@ -308,7 +308,7 @@ function Setup({ names, setNames, laps, setLaps, penalty, setPenalty, onStart, o
         <div className="flex flex-col gap-3">
           <Logo />
           <p className="dl-hint m-0">
-            Un tema, una scala da 1 a 10. Ognuno pesca un numero segreto e dà una risposta di quell'intensità. Il capitano rimette tutti in ordine: 1 punto
+            Un tema e un numero segreto a testa: 1, 2, 3… uno per giocatore, capitano escluso. Ognuno dà una risposta di quell'intensità. Il capitano rimette tutti in ordine: 1 punto
             a lui e 1 al giocatore per ogni posizione esatta, +{DL_PERFECT_BONUS} se le azzecca tutte.
           </p>
         </div>
@@ -394,7 +394,7 @@ function Deal({ game, shell, onDone }: { game: DieciState; shell: ShellBase; onD
           <span className="dl-eyebrow">Ridai il telefono a</span>
           <div className="dl-name">{captain}</div>
           <p className="dl-hint m-0">A turno, ognuno dice la sua risposta ad alta voce. Vietato dire il numero.</p>
-          <ThemeCard theme={game.round.theme} compact />
+          <ThemeCard theme={game.round.theme} max={guests.length} compact />
         </div>
       </Shell>
     );
@@ -446,10 +446,10 @@ function Deal({ game, shell, onDone }: { game: DieciState; shell: ShellBase; onD
           <div className="dl-secret" aria-live="polite">
             {game.round.numbers[player]}
           </div>
-          <Meter n={game.round.numbers[player]} />
-          <p className="dl-hint m-0">Pensa a una risposta che valga {game.round.numbers[player]} su 10.</p>
+          <Meter n={game.round.numbers[player]} max={guests.length} />
+          <p className="dl-hint m-0">Pensa a una risposta che valga {game.round.numbers[player]} su {guests.length}.</p>
         </div>
-        <ThemeCard theme={game.round.theme} compact />
+        <ThemeCard theme={game.round.theme} max={guests.length} compact />
       </div>
     </Shell>
   );
@@ -484,7 +484,7 @@ function Reveal({ game, order, shell, onDone }: { game: DieciState; order: numbe
       }
     >
       <div className="dl-body">
-        <ThemeCard theme={game.round.theme} compact />
+        <ThemeCard theme={game.round.theme} max={order.length} compact />
         <div className="flex flex-col gap-2" aria-live="polite">
           {order.map((p, i) => {
             const open = i < shown;

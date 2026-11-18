@@ -218,12 +218,12 @@ export function GameCover({ id }: { id: GameId }) {
             </span>
             <span className="text-xs font-extrabold text-[#5A4C86]">3–10 giocatori · un telefono</span>
           </div>
-          {/* il sole con il 10, sopra la vetta */}
+          {/* il sole sopra la vetta */}
           <span
-            className="relative mt-2 mr-4 grid size-[56px] flex-none place-items-center rounded-full bg-[#FFF7DC] font-['Bagel_Fat_One'] text-[26px] leading-none text-[#241B4D] shadow-[0_0_0_8px_#FFF7DC66,0_0_0_18px_#FFF7DC33]"
+            className="relative mt-2 mr-4 grid size-[56px] flex-none place-items-center rounded-full bg-[#FFF7DC] font-['Bagel_Fat_One'] text-[15px] leading-none text-[#241B4D] shadow-[0_0_0_8px_#FFF7DC66,0_0_0_18px_#FFF7DC33]"
             aria-hidden="true"
           >
-            10
+            TOP
           </span>
         </div>
       );

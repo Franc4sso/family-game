@@ -47,7 +47,8 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 function deal(players: number, captain: number, theme: DieciTheme): DieciRound {
-  const pool = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  // numeri consecutivi da 1 al numero di giocatori da ordinare: il numero coincide con la posizione giusta
+  const pool = shuffle(Array.from({ length: players - 1 }, (_, i) => i + 1));
   const numbers = Array.from({ length: players }, (_, i) => (i === captain ? 0 : pool.pop()!));
   return { captain, theme, numbers };
 }
