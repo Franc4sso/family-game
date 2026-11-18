@@ -10,7 +10,8 @@ export type GameId =
   | "asta"
   | "qdcp"
   | "francottina"
-  | "rick";
+  | "rick"
+  | "dieci";
 
 export interface GameInfo {
   id: GameId;
@@ -170,6 +171,20 @@ export const GAMES: GameInfo[] = [
       ink: "#FF3E8A",
       accent: "#FF3E8A",
       accentInk: "#1B0F1F",
+    },
+  },
+  {
+    id: "dieci",
+    name: "From Bottom to the Top",
+    description:
+      "Ognuno per sé, un solo telefono. Un tema e un numero segreto da 1 a 10 a testa: rispondi con quell'intensità. Il capitano rimette tutti in ordine: 1 punto a lui e 1 a te per ogni posizione esatta, +2 se le azzecca tutte.",
+    chips: ["3–10 giocatori", "Un telefono"],
+    modes: [{ label: "From Bottom to the Top", mode: "dieci" }],
+    sheet: {
+      bg: "#FFC9A8",
+      ink: "#241B4D",
+      accent: "#FF5A3C",
+      accentInk: "#FFFFFF",
     },
   },
 ];

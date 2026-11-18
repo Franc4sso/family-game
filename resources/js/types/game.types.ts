@@ -43,7 +43,8 @@ export type GameMode =
   | "asta"
   | "qdcp"
   | "francottina"
-  | "rick";
+  | "rick"
+  | "dieci";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 

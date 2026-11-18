@@ -1,0 +1,158 @@
+/* ─── From Bottom to the Top: alba in montagna, si sale di quota ───
+   Pensato per un solo telefono che passa di mano: una colonna stretta,
+   testi grandi, azione principale sempre in basso sotto il pollice. */
+
+.dl {
+    --dl-sky: linear-gradient(180deg, #fff1c9, #ffc9a8 58%, #f797a4);
+    --dl-card: #fffdf7;
+    --dl-ink: #241b4d;
+    --dl-muted: #5a4c86;
+    --dl-off: #241b4d2e;
+    --dl-hot: #ff5a3c;
+    --dl-peak-far: #8a79dd;
+    --dl-peak-near: #4a3aa3;
+    --dl-sun: #fff7dc;
+    --dl-ok: #0f9467;
+    --dl-bad: #d7263d;
+    --dl-display: "Bagel Fat One", "Arial Rounded MT Bold", "Arial Black", sans-serif;
+
+    position: relative;
+    min-height: 100dvh;
+    overflow-x: clip;
+    background: var(--dl-sky) fixed;
+    color: var(--dl-ink);
+    font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+/* due catene di montagne ferme in fondo allo schermo */
+.dl::before, .dl::after { content: ""; position: fixed; inset: auto 0 0; pointer-events: none; }
+.dl::before { height: 32dvh; background: var(--dl-peak-far); clip-path: polygon(0 55%, 22% 18%, 40% 48%, 63% 8%, 82% 42%, 100% 22%, 100% 100%, 0 100%); }
+.dl::after { height: 20dvh; background: var(--dl-peak-near); clip-path: polygon(0 40%, 16% 62%, 38% 12%, 58% 58%, 78% 26%, 100% 60%, 100% 100%, 0 100%); }
+/* schermate lunghe da compilare: niente montagne sotto i testi */
+.dl.plain::before, .dl.plain::after { display: none; }
+
+.dl button { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.dl button:focus-visible, .dl input:focus-visible { outline: 3px solid var(--dl-ink); outline-offset: 2px; }
+
+.dl-wrap {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; gap: 16px;
+    min-height: 100dvh; max-width: 480px; margin: 0 auto;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 0;
+}
+.dl-top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.dl-x { width: 44px; height: 44px; margin-left: -10px; border-radius: 14px; font-size: 22px; font-weight: 800; color: var(--dl-muted); }
+.dl-x:active { background: var(--dl-off); }
+.dl-body { display: flex; flex: 1; flex-direction: column; gap: 16px; }
+.dl-center { justify-content: center; align-items: center; text-align: center; }
+.dl-center > .dl-card { align-self: stretch; }
+
+/* azioni agganciate al bordo basso */
+.dl-foot {
+    position: sticky; bottom: 0; z-index: 5;
+    display: flex; gap: 10px;
+    margin: 0 -16px; padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(transparent, var(--dl-peak-near) 80%);
+}
+.dl.plain .dl-foot { background: linear-gradient(transparent, #f797a4 75%); }
+
+.dl-hand { font-family: var(--dl-display); line-height: 1; }
+.dl-eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--dl-muted); }
+.dl-hint { font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--dl-muted); text-wrap: pretty; }
+.dl-hint b { color: var(--dl-ink); font-weight: 800; }
+.dl-name { font-size: clamp(34px, 11vw, 52px); font-weight: 900; line-height: 1; letter-spacing: -.02em; overflow-wrap: anywhere; }
+
+.dl-logo { font-family: var(--dl-display); font-size: 44px; line-height: .95; color: var(--dl-ink); }
+.dl-logo b { color: var(--dl-hot); font-weight: 400; }
+
+.dl-btn {
+    flex: 1; min-height: 58px; padding: 10px 16px; border: 2px solid var(--dl-ink); border-radius: 20px;
+    background: var(--dl-hot); color: #fff;
+    font-size: 17px; font-weight: 800; line-height: 1.15; text-wrap: balance;
+    box-shadow: 0 4px 0 var(--dl-ink); transition: transform .08s, box-shadow .08s;
+}
+.dl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--dl-ink); }
+.dl-btn:disabled { opacity: .5; box-shadow: none; }
+.dl-btn.ghost { flex: 0 0 auto; background: var(--dl-card); color: var(--dl-ink); }
+
+.dl-card { background: var(--dl-card); border: 2px solid var(--dl-ink); border-radius: 20px; box-shadow: 4px 4px 0 var(--dl-ink); padding: 16px; text-align: left; }
+.dl-card.dl-sum { text-align: center; }
+.dl-prompt { font-size: 21px; font-weight: 800; line-height: 1.2; text-wrap: balance; }
+.dl-card.compact { padding: 14px; }
+.dl-card.compact .dl-prompt { font-size: 17px; }
+
+/* la scala in verticale: il 10 sta in alto, l'1 in basso; ogni polo ha la sua riga e può andare a capo */
+.dl-scale { position: relative; display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.dl-scale::before { content: ""; position: absolute; left: 15px; top: 16px; bottom: 16px; width: 2px; background: linear-gradient(var(--dl-hot), var(--dl-muted)); opacity: .7; }
+.dl-pole { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 800; line-height: 1.2; }
+.dl-pole i { position: relative; flex: none; display: grid; place-items: center; width: 32px; height: 32px; border: 2px solid var(--dl-muted); border-radius: 50%; background: var(--dl-card); color: var(--dl-muted); font-style: normal; font-size: 14px; font-weight: 900; }
+.dl-pole.hi i { border-color: var(--dl-hot); background: var(--dl-hot); color: #fff; }
+.dl-pole.lo span { color: var(--dl-muted); }
+.dl-card.compact .dl-scale { gap: 7px; margin-top: 10px; }
+.dl-card.compact .dl-scale::before { left: 12px; top: 13px; bottom: 13px; }
+.dl-card.compact .dl-pole { gap: 10px; font-size: 14px; }
+.dl-card.compact .dl-pole i { width: 26px; height: 26px; font-size: 12px; }
+
+/* il numero segreto dentro il sole */
+.dl-secret {
+    display: grid; flex: none; place-items: center; width: 220px; height: 220px; border-radius: 50%;
+    background: var(--dl-sun); box-shadow: 0 0 0 14px #fff7dc66, 0 0 0 30px #fff7dc33;
+    font-family: var(--dl-display); font-size: 150px; line-height: 1; color: var(--dl-ink);
+    animation: dl-rise .4s cubic-bezier(.2, 1.3, .4, 1);
+}
+@keyframes dl-rise { from { transform: translateY(40px) scale(.7); opacity: 0; } }
+
+/* il sentiero che sale: dieci tappe, la bandierina dove sei arrivato */
+.dl-meter { display: flex; gap: 9px; align-items: flex-end; padding-top: 58px; }
+.dl-meter i { position: relative; width: 16px; height: 16px; border-radius: 50%; background: var(--dl-off); transform: translateY(calc(var(--k) * -4px)); }
+.dl-meter i.on { background: var(--dl-hot); }
+.dl-meter i.cur::after { content: ""; position: absolute; left: 6px; bottom: 12px; width: 3px; height: 30px; border-radius: 2px; background: var(--dl-ink); }
+.dl-meter i.cur::before { content: ""; position: absolute; left: 9px; bottom: 27px; width: 18px; height: 15px; background: var(--dl-hot); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+/* campi e scelte del setup */
+.dl-field { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 6px 0 14px; background: var(--dl-card); border: 2px solid var(--dl-ink); border-radius: 18px; }
+.dl-field span { width: 22px; font-family: var(--dl-display); font-size: 20px; color: var(--dl-hot); text-align: center; }
+.dl-field input { flex: 1; min-width: 0; height: 50px; background: none; border: 0; outline: 0; font: inherit; font-size: 17px; font-weight: 800; color: var(--dl-ink); }
+.dl-field input::placeholder { color: #241b4d55; }
+.dl-field button { width: 42px; height: 42px; border-radius: 12px; font-size: 18px; color: var(--dl-muted); }
+.dl-add { min-height: 52px; border: 2px dashed var(--dl-ink); border-radius: 18px; background: #fffdf780; font-size: 16px; font-weight: 800; }
+.dl-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; background: var(--dl-card); border: 2px solid var(--dl-ink); border-radius: 18px; }
+.dl-seg button { min-height: 46px; border-radius: 12px; font-size: 15px; font-weight: 800; color: var(--dl-muted); }
+.dl-seg button[aria-pressed="true"] { background: var(--dl-ink); color: var(--dl-card); }
+
+/* righe: ordine del capitano, correzione, classifica */
+.dl-slot {
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 58px; padding: 6px 14px;
+    background: var(--dl-card); border: 2px solid var(--dl-ink); border-radius: 20px; box-shadow: 3px 3px 0 var(--dl-ink);
+    text-align: left; font-size: 18px; font-weight: 800;
+}
+.dl-slot.empty { background: #fffdf7b3; border-style: dashed; box-shadow: none; font-size: 14px; color: var(--dl-muted); }
+.dl-slot.next { border-color: var(--dl-hot); }
+.dl-slot.ok { box-shadow: 3px 3px 0 var(--dl-ok); }
+.dl-slot.bad { box-shadow: 3px 3px 0 var(--dl-bad); }
+.dl-slot.shown { animation: dl-pop .25s ease-out; }
+@keyframes dl-pop { from { transform: scale(.95); } }
+.dl-pos { flex: none; width: 24px; font-family: var(--dl-display); font-size: 20px; line-height: 1; color: var(--dl-muted); text-align: center; }
+.dl-slot .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.15; }
+.dl-slot small { display: block; font-size: 12px; font-weight: 700; color: var(--dl-muted); }
+.dl-grade { flex: none; font-family: var(--dl-display); font-size: 32px; line-height: 1; }
+.dl-mark { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; font-weight: 900; color: #fff; }
+.dl-mark.ok { background: var(--dl-ok); }
+.dl-mark.bad { background: var(--dl-bad); }
+
+.dl-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px; }
+.dl-chip { min-height: 52px; padding: 0 20px; border: 2px solid var(--dl-ink); border-radius: 26px; background: var(--dl-hot); color: #fff; font-size: 17px; font-weight: 800; box-shadow: 0 3px 0 var(--dl-ink); }
+.dl-chip:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--dl-ink); }
+
+.dl-delta { flex: none; min-width: 40px; font-family: var(--dl-display); font-size: 22px; line-height: 1; text-align: right; color: var(--dl-ok); }
+.dl-delta.neg { color: var(--dl-bad); }
+.dl-score { flex: none; min-width: 34px; font-size: 24px; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
+.dl-lode { font-family: var(--dl-display); font-size: 40px; line-height: 1; color: var(--dl-hot); transform: rotate(-3deg); animation: dl-rise .35s cubic-bezier(.2, 1.3, .4, 1); }
+
+.dl-scrim { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: #241b4d99; }
+.dl-scrim .dl-card { width: 100%; max-width: 448px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .dl-secret, .dl-lode, .dl-slot.shown { animation: none; }
+    .dl-btn, .dl-chip { transition: none; }
+}

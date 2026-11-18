@@ -203,5 +203,29 @@ export function GameCover({ id }: { id: GameId }) {
           </span>
         </div>
       );
+
+    case "dieci":
+      return (
+        <div className="relative flex h-full w-full items-stretch justify-between gap-3 overflow-hidden rounded-[18px] bg-[linear-gradient(180deg,#FFF1C9,#FFC9A8_58%,#F797A4)] px-[18px] py-4 text-left">
+          {/* due catene di montagne sul lato destro */}
+          <span className="absolute right-0 bottom-0 h-[62%] w-[52%] bg-[#8A79DD] [clip-path:polygon(0_100%,24%_30%,42%_58%,66%_6%,84%_44%,100%_24%,100%_100%)]" aria-hidden="true" />
+          <span className="absolute right-0 bottom-0 h-[38%] w-[46%] bg-[#4A3AA3] [clip-path:polygon(0_100%,22%_48%,40%_16%,60%_60%,80%_28%,100%_62%,100%_100%)]" aria-hidden="true" />
+          <div className="relative flex min-w-0 flex-col justify-between">
+            <span className="font-['Bagel_Fat_One'] text-[26px] leading-[0.95] text-[#241B4D] md:text-[34px]">
+              From Bottom
+              <br />
+              to the <span className="text-[#FF5A3C]">Top</span>
+            </span>
+            <span className="text-xs font-extrabold text-[#5A4C86]">3–10 giocatori · un telefono</span>
+          </div>
+          {/* il sole con il 10, sopra la vetta */}
+          <span
+            className="relative mt-2 mr-4 grid size-[56px] flex-none place-items-center rounded-full bg-[#FFF7DC] font-['Bagel_Fat_One'] text-[26px] leading-none text-[#241B4D] shadow-[0_0_0_8px_#FFF7DC66,0_0_0_18px_#FFF7DC33]"
+            aria-hidden="true"
+          >
+            10
+          </span>
+        </div>
+      );
   }
 }

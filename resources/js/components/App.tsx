@@ -20,6 +20,7 @@ import { AstaGame } from "./asta/AstaGame";
 import { QdcpScreen } from "./qdcp/QdcpScreen";
 import { FrancottinaScreen } from "./game/FrancottinaScreen";
 import { RickScreen } from "./rick/RickScreen";
+import { DieciScreen } from "./game/DieciScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -53,6 +54,10 @@ export function App() {
   // Non lo so Rick ha giocatori singoli (da 3 a 10), nominati nella sua schermata iniziale
   if (state.gameMode === "rick") {
     return <RickScreen gameState={state} dispatch={dispatch} onUndo={undo} canUndo={canUndo} />;
+  }
+  // From Bottom to the Top: ognuno per sé, un solo telefono che passa di mano
+  if (state.gameMode === "dieci") {
+    return <DieciScreen dispatch={dispatch} />;
   }
 
   // Personaggio Misterioso ha da 2 a 6 squadre: le nomina nella sua schermata iniziale
