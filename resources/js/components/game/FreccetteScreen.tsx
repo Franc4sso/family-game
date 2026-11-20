@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { Dispatch, ReactNode } from "react";
 import type { GameAction } from "@/types/actions.types";
 import type { FrecceCategory } from "@/data/freccette/types";
@@ -9,9 +9,11 @@ import {
   createFreccette,
   ranking,
   searchAnswers,
+  throwAnswer,
   throwDart,
   type FrecceState,
 } from "@/services/freccetteService";
+import { quickLookup, resolveLookup } from "@/services/freccetteLookup";
 import "../../../css/freccette.css";
 
 interface FreccetteScreenProps {
@@ -189,10 +191,10 @@ export function FreccetteScreen({ dispatch }: FreccetteScreenProps) {
     <Turn
       game={game}
       onExit={exit}
-      onThrow={(answer) => {
-        buzz(answer === null ? [40, 60, 40] : 30);
+      onThrow={(answer, custom) => {
+        buzz(answer === null && !custom ? [40, 60, 40] : 30);
         setPrev(game);
-        setGame(throwDart(game, answer));
+        setGame(throwDart(game, answer, custom));
       }}
     />
   );
@@ -325,7 +327,72 @@ function CategoryStep({ selected, onSelect, onBack, onStart }: {
 
 // ───────────────────────── Turno ─────────────────────────
 
-function Turn({ game, onExit, onThrow }: { game: FrecceState; onExit: () => void; onThrow: (answer: number | null) => void }) {
+/** Valore scritto a mano ("6,5" con decimals 1 → 65); null se non è un numero valido. */
+function parseValue(text: string, decimals = 0): number | null {
+  const clean = text.trim().replace(/\s/g, "");
+  if (!clean) return null;
+  // "1.234" e "1.234,5": il punto è delle migliaia, la virgola dei decimali
+  // "7.5" scritto col punto: decimale, non migliaia
+  const dotDecimal = !clean.includes(",") && /^\d+\.\d{1,2}$/.test(clean);
+  const n = Number(dotDecimal ? clean : clean.replace(/\./g, "").replace(",", "."));
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n * 10 ** decimals);
+}
+
+/** Risposta fuori lista: link alla fonte già centrato sul dato e valore inserito a mano. */
+function NotInList({ game, query, onThrow }: { game: FrecceState; query: string; onThrow: (custom: { name: string; value: number }) => void }) {
+  const q = query.trim();
+  const [link, setLink] = useState(() => quickLookup(game.category.id, q));
+  const [resolving, setResolving] = useState(true);
+  const [text, setText] = useState("");
+  const value = parseValue(text, game.category.decimals);
+
+  useEffect(() => {
+    let alive = true;
+    setLink(quickLookup(game.category.id, q));
+    setResolving(true);
+    const timer = setTimeout(() => {
+      resolveLookup(game.category.id, q).then((url) => {
+        if (!alive) return;
+        setLink(url);
+        setResolving(false);
+      });
+    }, 350);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [game.category.id, q]);
+
+  return (
+    <div className="fc-miss">
+      <p className="fc-hint m-0">Non è in lista. Puoi cercarlo nella fonte della categoria e inserire il numero, oppure dare il turno perso.</p>
+      <a className="fc-btn ghost fc-miss-link" href={link} target="_blank" rel="noopener noreferrer">
+        <span className="min-w-0 truncate">Cerca «{q}»</span>
+        <small>{resolving ? "trovo la pagina…" : /Special:Search|google\.com\/search|youtube\.com\/results|imdb\.com\/find|music\.apple\.com\/it\/search/.test(link) ? "apre la ricerca" : "apre la pagina"}</small>
+      </a>
+      <label htmlFor="fc-custom" className="fc-label">
+        Valore trovato{game.category.unit ? ` (${game.category.unit})` : ""}
+      </label>
+      <div className="fc-miss-row">
+        <input
+          id="fc-custom"
+          className="fc-search"
+          inputMode="decimal"
+          autoComplete="off"
+          placeholder={game.category.decimals ? "es. 7,5" : "es. 120"}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <button type="button" className="fc-btn" disabled={value === null} onClick={() => value !== null && onThrow({ name: q, value })}>
+          Lancia
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Turn({ game, onExit, onThrow }: { game: FrecceState; onExit: () => void; onThrow: (answer: number | null, custom?: { name: string; value: number }) => void }) {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<number | null>(null);
   const hits = useMemo(() => searchAnswers(game, query), [game, query]);
@@ -419,7 +486,7 @@ function Turn({ game, onExit, onThrow }: { game: FrecceState; onExit: () => void
             ))}
           </div>
         )}
-        {query.trim() !== "" && hits.length === 0 && <p className="fc-hint m-0">Nessuna risposta trovata: se non è in lista, il turno è perso.</p>}
+        {query.trim() !== "" && hits.length === 0 && <NotInList game={game} query={query} onThrow={(custom) => onThrow(null, custom)} />}
         {query.trim() === "" && <p className="fc-hint m-0">Il valore si scopre solo dopo il lancio. Sopra {fmt(game.category.max, game.category.decimals)}: fuori bersaglio.</p>}
       </div>
     </Shell>
@@ -437,7 +504,7 @@ function Outcome({ prev, game, onExit, onUndo, onNext }: {
 }) {
   const t = game.throws[game.throws.length - 1];
   const name = game.players[t.player];
-  const answer = t.answer === null ? null : game.category.answers[t.answer];
+  const answer = throwAnswer(game, t);
   const rankBefore = ranking(prev).indexOf(t.player) + 1;
   const order = ranking(game);
   const rankAfter = order.indexOf(t.player) + 1;
@@ -532,7 +599,7 @@ function Outcome({ prev, game, onExit, onUndo, onNext }: {
 function Final({ game, onAgain, onExit }: { game: FrecceState; onAgain: () => void; onExit: () => void }) {
   const w = game.winner!;
   const last = [...game.throws].reverse().find((t) => t.player === w && !t.tiebreak)!;
-  const lastAnswer = last.answer === null ? null : game.category.answers[last.answer];
+  const lastAnswer = throwAnswer(game, last);
   const above = game.players.map((_, i) => i).filter((i) => game.scores[i] > 0).sort((a, b) => game.scores[b] - game.scores[a]);
   const below = game.players.map((_, i) => i).filter((i) => game.scores[i] <= 0).sort((a, b) => game.scores[b] - game.scores[a]);
   const hadTiebreak = game.throws.some((t) => t.tiebreak);

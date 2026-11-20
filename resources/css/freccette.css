@@ -196,3 +196,11 @@
     .fc-result { animation: none; }
     .fc-bar-track i { transition: none; }
 }
+
+/* Risposta fuori lista: cerca nella fonte e inserisci il valore */
+.fc-miss { display: flex; flex-direction: column; gap: 10px; }
+.fc-miss-link { justify-content: space-between; gap: 10px; text-decoration: none; min-height: 52px; font-size: 16px; }
+.fc-miss-link small { font-size: 12px; font-weight: 500; color: var(--fc-muted); flex-shrink: 0; }
+.fc-miss-row { display: flex; gap: 8px; }
+.fc-miss-row .fc-search { flex: 1; min-width: 0; }
+.fc-miss-row .fc-btn { flex-shrink: 0; min-height: 54px; padding: 0 20px; }

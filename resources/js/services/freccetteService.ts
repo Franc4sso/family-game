@@ -9,6 +9,8 @@ export interface FrecceThrow {
   /** Indice della risposta nella categoria; null se non era in lista. */
   answer: number | null;
   value: number;
+  /** Risposta fuori lista con il valore cercato e inserito a mano dal presentatore. */
+  custom?: { name: string; value: number };
   /** La risposta c'era ma valeva più del tetto: fuori bersaglio, turno perso. */
   offBoard?: boolean;
   before: number;
@@ -121,11 +123,18 @@ function closeGiro(state: FrecceState): FrecceState {
   return { ...state, tiebreak: { players: tied, round: 1, values: tied.map(() => null) }, turn: tied[0] };
 }
 
-/** Registra il lancio di chi è di turno. `answer` null = risposta fuori lista. */
-export function throwDart(state: FrecceState, answer: number | null): FrecceState {
+/** La risposta di un lancio (dalla lista o inserita a mano), null se fuori lista e basta. */
+export function throwAnswer(state: FrecceState, t: FrecceThrow): { name: string; value: number } | null {
+  if (t.custom) return t.custom;
+  return t.answer === null ? null : state.category.answers[t.answer];
+}
+
+/** Registra il lancio di chi è di turno. `answer` null = risposta fuori lista;
+ *  con `custom` la risposta fuori lista vale il numero cercato e inserito a mano. */
+export function throwDart(state: FrecceState, answer: number | null, custom?: { name: string; value: number }): FrecceState {
   if (state.winner !== null) return state;
   const player = state.turn;
-  const raw = answer === null ? 0 : state.category.answers[answer].value;
+  const raw = custom ? custom.value : answer === null ? 0 : state.category.answers[answer].value;
   const offBoard = raw > state.category.max;
   // fuori bersaglio: la freccia non conta, ma la risposta è bruciata
   const value = offBoard ? 0 : raw;
@@ -139,7 +148,7 @@ export function throwDart(state: FrecceState, answer: number | null): FrecceStat
     const next: FrecceState = {
       ...state,
       used,
-      throws: [...state.throws, { player, answer, value, offBoard, before: score, after: score, tiebreak: true }],
+      throws: [...state.throws, { player, answer, custom, value, offBoard, before: score, after: score, tiebreak: true }],
       tiebreak: { ...tb, values },
     };
     if (pos < tb.players.length - 1) return { ...next, turn: tb.players[pos + 1] };
@@ -152,7 +161,7 @@ export function throwDart(state: FrecceState, answer: number | null): FrecceStat
     ...state,
     used,
     scores: state.scores.map((s, i) => (i === player ? after : s)),
-    throws: [...state.throws, { player, answer, value, offBoard, before, after }],
+    throws: [...state.throws, { player, answer, custom, value, offBoard, before, after }],
   };
   if (player < state.players.length - 1) return { ...next, turn: player + 1 };
   return closeGiro(next);
