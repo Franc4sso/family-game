@@ -6,11 +6,11 @@
 
 type Lookup =
   /** Una pagina per risposta su un sito MediaWiki; `fragment` è il testo vicino al numero. */
-  | { kind: "page"; site: string; fragment?: string; english?: boolean }
+  | { kind: "page"; site: string; fragment?: string; english?: RegExp }
   /** Una pagina fissa (tabella o elenco): si evidenzia la risposta stessa. */
-  | { kind: "list"; url: string; english?: boolean }
+  | { kind: "list"; url: string; english?: RegExp }
   /** Pagina IMDb del titolo (il voto è in alto). */
-  | { kind: "imdb" }
+  | { kind: "imdb"; type: RegExp }
   /** Pagina Apple Music del brano (la durata è accanto al titolo). */
   | { kind: "itunes" }
   /** Ricerca con il risultato già in cima: `{q}` è la risposta. */
@@ -19,24 +19,29 @@ type Lookup =
 const EN = "https://en.wikipedia.org";
 const IT = "https://it.wikipedia.org";
 const LOD = "https://listofdeaths.fandom.com";
+/** Tipo della voce Wikidata, letto dalla descrizione ("film del 2016…", "serie televisiva…"). */
+const FILM = /\bfilm\b|\bmovie\b/i;
+const SERIE = /serie|series|sitcom|soap|telenovela|anime|miniserie/i;
+const CHAR = /personaggio|character/i;
+const COUNTRY = /stato|country|paese|nazione|nation|sovereign|territorio|territory|principato|isola|island/i;
 const google = (extra: string): Lookup => ({ kind: "search", url: `https://www.google.com/search?hl=it&q={q}+${encodeURIComponent(extra)}` });
 
 const LOOKUPS: Record<string, Lookup> = {
-  "film-morti": { kind: "page", site: LOD, fragment: "Total -", english: true },
+  "film-morti": { kind: "page", site: LOD, fragment: "Total -", english: FILM },
   "personaggi-uccisioni": { kind: "page", site: LOD, fragment: "Kill Count" },
-  "film-durata": { kind: "page", site: EN, fragment: "Running time", english: true },
+  "film-durata": { kind: "page", site: EN, fragment: "Running time", english: FILM },
   "saghe-durata": google("durata totale di tutti i film in minuti"),
-  "serie-tv-episodi": { kind: "page", site: EN, fragment: "of episodes", english: true },
-  "film-voto-imdb": { kind: "imdb" },
-  "serie-tv-voto-imdb": { kind: "imdb" },
+  "serie-tv-episodi": { kind: "page", site: EN, fragment: "of episodes", english: SERIE },
+  "film-voto-imdb": { kind: "imdb", type: FILM },
+  "serie-tv-voto-imdb": { kind: "imdb", type: SERIE },
   "programmi-tv-edizioni": { kind: "page", site: IT, fragment: "Edizioni" },
   "eventi-storici-anno": { kind: "page", site: IT },
   "invenzioni-anno": { kind: "page", site: IT },
-  "harrypotter-eta-morte": { kind: "page", site: "https://harrypotter.fandom.com", fragment: "Died", english: true },
+  "harrypotter-eta-morte": { kind: "page", site: "https://harrypotter.fandom.com", fragment: "Died", english: CHAR },
   "cartoni-eta": google("età anni"),
   "classici-disney-numero": { kind: "list", url: `${IT}/wiki/Classici_Disney` },
   "sanremo-conduzioni": { kind: "list", url: `${IT}/wiki/Festival_di_Sanremo` },
-  "stati-abitanti": { kind: "list", url: `${EN}/wiki/List_of_countries_and_dependencies_by_population_(United_Nations)`, english: true },
+  "stati-abitanti": { kind: "list", url: `${EN}/wiki/List_of_countries_and_dependencies_by_population_(United_Nations)`, english: COUNTRY },
   "concerti-spettatori": { kind: "list", url: `${EN}/wiki/List_of_most-attended_concert_tours` },
   "dragonball-livello-combattimento": { kind: "list", url: "https://dragonball.fandom.com/wiki/List_of_Power_Levels" },
   "harrypotter-personaggi-numero-film": { kind: "list", url: `${EN}/wiki/List_of_Harry_Potter_(film_series)_cast_members` },
@@ -67,18 +72,26 @@ async function api(site: string, params: Record<string, string>): Promise<any> {
   return res.json();
 }
 
-/** Titolo inglese di Wikipedia per quello che si è detto in italiano, con l'anno di uscita se c'è (via Wikidata). */
-async function englishTitle(q: string): Promise<{ title: string; year: string | null } | null> {
+interface Entity { title: string | null; year: string | null; imdb: string | null }
+
+/** Voce Wikidata per quello che si è detto in italiano, solo se del tipo giusto (un film, una serie…):
+ *  titolo inglese di Wikipedia, anno di uscita e codice IMDb. Null se non c'è o se Wikidata non risponde. */
+async function findEntity(q: string, type: RegExp): Promise<Entity | null> {
   try {
-    const found = await api("https://www.wikidata.org", { action: "wbsearchentities", search: q, language: "it", uselang: "it", limit: "1" });
-    const id = found.search?.[0]?.id;
-    if (!id) return null;
-    const ent = await api("https://www.wikidata.org", { action: "wbgetentities", ids: id, props: "sitelinks|claims", sitefilter: "enwiki" });
-    const e = ent.entities?.[id];
-    const title: string | undefined = e?.sitelinks?.enwiki?.title;
-    if (!title) return null;
+    const found = await api("https://www.wikidata.org", { action: "wbsearchentities", search: q, language: "it", uselang: "it", limit: "10" });
+    const typed = (found.search ?? []).filter((r: { description?: string }) => r.description && type.test(r.description));
+    // "Il diavolo veste Prada" è il film del 2006, non il seguito: vince il titolo identico
+    const hit = typed.find((r: { label?: string }) => r.label && norm(r.label) === norm(q)) ?? typed[0];
+    if (!hit) return null;
+    const ent = await api("https://www.wikidata.org", { action: "wbgetentities", ids: hit.id, props: "sitelinks|claims", sitefilter: "enwiki" });
+    const e = ent.entities?.[hit.id];
     const date: string | undefined = e?.claims?.P577?.[0]?.mainsnak?.datavalue?.value?.time;
-    return { title, year: date ? date.slice(1, 5) : null };
+    const imdb: unknown = e?.claims?.P345?.[0]?.mainsnak?.datavalue?.value;
+    return {
+      title: e?.sitelinks?.enwiki?.title ?? null,
+      year: date ? date.slice(1, 5) : null,
+      imdb: typeof imdb === "string" && imdb.startsWith("tt") ? imdb : null,
+    };
   } catch {
     return null; // Wikidata non risponde: si prova col nome detto
   }
@@ -93,7 +106,8 @@ async function findPage(site: string, q: string): Promise<string | null> {
   const nq = norm(q);
   const hit = (found.query?.search ?? []).find((r: { title: string }) => {
     const nt = norm(r.title);
-    return nt.includes(nq) || nq.includes(nt);
+    // "Gladiator (2000)" può diventare "Gladiator (2000 film)", mai "Swords and Sandals: Gladiator"
+    return nt === nq || nt.startsWith(nq + " ");
   });
   return hit?.title ?? null;
 }
@@ -120,11 +134,13 @@ export async function resolveLookup(categoryId: string, q: string): Promise<stri
     if (l.kind === "page") {
       const tries = [q];
       if (l.english) {
-        const en = await englishTitle(q);
-        if (en) {
+        const en = await findEntity(q, l.english);
+        if (en?.title) {
           const base = en.title.replace(/ \([^)]*\)$/, "");
           // "Shrek (2001)" prima di "Shrek", che sulle wiki dei fan spesso porta alla saga intera
-          tries.unshift(...(en.year ? [`${base} (${en.year})`] : []), en.title, base);
+          // Su Wikipedia il titolo di Wikidata è già quello giusto; sulle wiki dei fan si prova prima con l'anno
+          if (l.site === EN) tries.unshift(en.title);
+          else tries.unshift(...(en.year ? [`${base} (${en.year})`] : []), en.title, base);
         }
       }
       for (const t of tries) {
@@ -134,16 +150,12 @@ export async function resolveLookup(categoryId: string, q: string): Promise<stri
       return fallback;
     }
     if (l.kind === "list" && l.english) {
-      const en = await englishTitle(q);
-      return en ? l.url + textFragment(en.title.replace(/ \([^)]*\)$/, "")) : fallback;
+      const en = await findEntity(q, l.english);
+      return en?.title ? l.url + textFragment(en.title.replace(/ \([^)]*\)$/, "")) : fallback;
     }
     if (l.kind === "imdb") {
-      const found = await api("https://www.wikidata.org", { action: "wbsearchentities", search: q, language: "it", uselang: "it", limit: "1" });
-      const id = found.search?.[0]?.id;
-      if (!id) return fallback;
-      const ent = await api("https://www.wikidata.org", { action: "wbgetentities", ids: id, props: "claims" });
-      const tt = ent.entities?.[id]?.claims?.P345?.[0]?.mainsnak?.datavalue?.value;
-      return typeof tt === "string" && tt.startsWith("tt") ? `https://www.imdb.com/title/${tt}/` : fallback;
+      const en = await findEntity(q, l.type);
+      return en?.imdb ? `https://www.imdb.com/title/${en.imdb}/` : fallback;
     }
     if (l.kind === "itunes") {
       const res = await fetch(`https://itunes.apple.com/search?${new URLSearchParams({ term: q, entity: "song", country: "it", limit: "1" })}`);

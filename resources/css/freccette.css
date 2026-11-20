@@ -204,3 +204,4 @@
 .fc-miss-row { display: flex; gap: 8px; }
 .fc-miss-row .fc-search { flex: 1; min-width: 0; }
 .fc-miss-row .fc-btn { flex-shrink: 0; min-height: 54px; padding: 0 20px; }
+.fc-miss-toggle { align-self: flex-start; background: none; border: none; padding: 4px 0; font-size: 14px; font-weight: 700; color: var(--fc-ink); text-decoration: underline; text-underline-offset: 3px; }

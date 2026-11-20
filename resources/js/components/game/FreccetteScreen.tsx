@@ -7,6 +7,7 @@ import {
   FC_MAX_PLAYERS,
   FC_MIN_PLAYERS,
   createFreccette,
+  normalize,
   ranking,
   searchAnswers,
   throwAnswer,
@@ -346,6 +347,8 @@ function NotInList({ game, query, onThrow }: { game: FrecceState; query: string;
   const [resolving, setResolving] = useState(true);
   const [text, setText] = useState("");
   const value = parseValue(text, game.category.decimals);
+  // anche le risposte fuori lista non si possono ripetere
+  const said = game.throws.find((t) => t.custom && normalize(t.custom.name) === normalize(q));
 
   useEffect(() => {
     let alive = true;
@@ -366,7 +369,11 @@ function NotInList({ game, query, onThrow }: { game: FrecceState; query: string;
 
   return (
     <div className="fc-miss">
-      <p className="fc-hint m-0">Non è in lista. Puoi cercarlo nella fonte della categoria e inserire il numero, oppure dare il turno perso.</p>
+      {said ? (
+        <p className="fc-hint m-0">«{q}» l'ha già detta {game.players[said.player]}: non si può ripetere.</p>
+      ) : (
+        <p className="fc-hint m-0">Non è in lista. Puoi cercarlo nella fonte della categoria e inserire il numero, oppure dare il turno perso.</p>
+      )}
       <a className="fc-btn ghost fc-miss-link" href={link} target="_blank" rel="noopener noreferrer">
         <span className="min-w-0 truncate">Cerca «{q}»</span>
         <small>{resolving ? "trovo la pagina…" : /Special:Search|google\.com\/search|youtube\.com\/results|imdb\.com\/find|music\.apple\.com\/it\/search/.test(link) ? "apre la ricerca" : "apre la pagina"}</small>
@@ -384,7 +391,7 @@ function NotInList({ game, query, onThrow }: { game: FrecceState; query: string;
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <button type="button" className="fc-btn" disabled={value === null} onClick={() => value !== null && onThrow({ name: q, value })}>
+        <button type="button" className="fc-btn" disabled={value === null || !!said} onClick={() => value !== null && !said && onThrow({ name: q, value })}>
           Lancia
         </button>
       </div>
@@ -396,6 +403,8 @@ function Turn({ game, onExit, onThrow }: { game: FrecceState; onExit: () => void
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<number | null>(null);
   const hits = useMemo(() => searchAnswers(game, query), [game, query]);
+  /** La ricerca mostra risposte simili, ma quella detta non c'è. */
+  const [forceMiss, setForceMiss] = useState(false);
   const player = game.turn;
   const name = game.players[player];
   const pickedAnswer = picked === null ? null : game.category.answers[picked];
@@ -457,6 +466,7 @@ function Turn({ game, onExit, onThrow }: { game: FrecceState; onExit: () => void
           onChange={(e) => {
             setQuery(e.target.value);
             setPicked(null);
+            setForceMiss(false);
           }}
         />
         {hits.length > 0 && (
@@ -486,7 +496,12 @@ function Turn({ game, onExit, onThrow }: { game: FrecceState; onExit: () => void
             ))}
           </div>
         )}
-        {query.trim() !== "" && hits.length === 0 && <NotInList game={game} query={query} onThrow={(custom) => onThrow(null, custom)} />}
+        {hits.length > 0 && !forceMiss && (
+          <button type="button" className="fc-miss-toggle" onClick={() => { setForceMiss(true); setPicked(null); }}>
+            Non è nessuna di queste?
+          </button>
+        )}
+        {query.trim() !== "" && (hits.length === 0 || forceMiss) && <NotInList game={game} query={query} onThrow={(custom) => onThrow(null, custom)} />}
         {query.trim() === "" && <p className="fc-hint m-0">Il valore si scopre solo dopo il lancio. Sopra {fmt(game.category.max, game.category.decimals)}: fuori bersaglio.</p>}
       </div>
     </Shell>
