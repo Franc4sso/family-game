@@ -15,6 +15,7 @@ const TITLE_CLASS: Record<GameId, string> = {
   francottina: "font-['Big_Shoulders_Display'] font-black uppercase text-5xl",
   rick: "font-['Shrikhand'] text-[40px]",
   dieci: "font-['Bagel_Fat_One'] text-[34px]",
+  freccette: "font-['Anton'] uppercase text-[40px]",
 };
 
 interface GameSheetProps {

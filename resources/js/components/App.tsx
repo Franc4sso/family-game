@@ -21,6 +21,7 @@ import { QdcpScreen } from "./qdcp/QdcpScreen";
 import { FrancottinaScreen } from "./game/FrancottinaScreen";
 import { RickScreen } from "./rick/RickScreen";
 import { DieciScreen } from "./game/DieciScreen";
+import { FreccetteScreen } from "./game/FreccetteScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -58,6 +59,10 @@ export function App() {
   // From Bottom to the Top: ognuno per sé, un solo telefono che passa di mano
   if (state.gameMode === "dieci") {
     return <DieciScreen dispatch={dispatch} />;
+  }
+  // Freccette Challenge: dal numero di partenza a 0, un telefono che segna i lanci
+  if (state.gameMode === "freccette") {
+    return <FreccetteScreen dispatch={dispatch} />;
   }
 
   // Personaggio Misterioso ha da 2 a 6 squadre: le nomina nella sua schermata iniziale

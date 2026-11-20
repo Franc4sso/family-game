@@ -204,6 +204,27 @@ export function GameCover({ id }: { id: GameId }) {
         </div>
       );
 
+    case "freccette":
+      return (
+        <div className="relative flex h-full w-full items-stretch justify-between gap-3 overflow-hidden rounded-[18px] bg-[#F4F1EA] px-[18px] py-4 text-left">
+          {/* il bersaglio che esce dal bordo destro */}
+          <svg className="absolute top-1/2 -right-[54px] size-[170px] -translate-y-1/2" viewBox="0 0 300 300" aria-hidden="true">
+            <circle cx="150" cy="150" r="148" fill="#111111" />
+            <circle cx="150" cy="150" r="118" fill="#C42E24" />
+            <circle cx="150" cy="150" r="88" fill="#F4F1EA" />
+            <circle cx="150" cy="150" r="58" fill="#1F8A4C" />
+            <circle cx="150" cy="150" r="26" fill="#C42E24" />
+          </svg>
+          <div className="relative flex min-w-0 flex-col justify-between">
+            <span className="font-['Anton'] text-[30px] leading-[0.92] text-[#111111] uppercase md:text-[38px]">
+              Freccette
+              <br />
+              <span className="text-[#C42E24]">Challenge</span>
+            </span>
+            <span className="text-xs font-extrabold text-[#555049]">2–10 giocatori · un telefono</span>
+          </div>
+        </div>
+      );
     case "dieci":
       return (
         <div className="relative flex h-full w-full items-stretch justify-between gap-3 overflow-hidden rounded-[18px] bg-[linear-gradient(180deg,#FFF1C9,#FFC9A8_58%,#F797A4)] px-[18px] py-4 text-left">

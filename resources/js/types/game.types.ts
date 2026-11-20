@@ -44,7 +44,8 @@ export type GameMode =
   | "qdcp"
   | "francottina"
   | "rick"
-  | "dieci";
+  | "dieci"
+  | "freccette";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 

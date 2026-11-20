@@ -11,7 +11,8 @@ export type GameId =
   | "qdcp"
   | "francottina"
   | "rick"
-  | "dieci";
+  | "dieci"
+  | "freccette";
 
 export interface GameInfo {
   id: GameId;
@@ -184,6 +185,20 @@ export const GAMES: GameInfo[] = [
       bg: "#FFC9A8",
       ink: "#241B4D",
       accent: "#FF5A3C",
+      accentInk: "#FFFFFF",
+    },
+  },
+  {
+    id: "freccette",
+    name: "Freccette Challenge",
+    description:
+      "Si parte da un numero alto e si scende a colpi di risposte. A turno dite qualcosa della categoria (un Paese, un film, una montagna…): il suo valore si toglie dal vostro totale. Chi arriva a 0 chiude il giro, e vince chi va più sotto.",
+    chips: ["2–10 giocatori", "Un telefono"],
+    modes: [{ label: "Freccette Challenge", mode: "freccette" }],
+    sheet: {
+      bg: "#F4F1EA",
+      ink: "#111111",
+      accent: "#C42E24",
       accentInk: "#FFFFFF",
     },
   },
