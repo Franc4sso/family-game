@@ -12,7 +12,8 @@ export type GameId =
   | "francottina"
   | "rick"
   | "dieci"
-  | "freccette";
+  | "freccette"
+  | "banale";
 
 export interface GameInfo {
   id: GameId;
@@ -200,6 +201,20 @@ export const GAMES: GameInfo[] = [
       ink: "#111111",
       accent: "#C42E24",
       accentInk: "#FFFFFF",
+    },
+  },
+  {
+    id: "banale",
+    name: "Banale o Geniale",
+    description:
+      "Una situazione di tutti i giorni e cento persone intervistate. In un round vince la risposta più comune, in un altro la più rara, in un altro quella più vicina a un numero estratto. Le squadre rispondono a turno, i punti si scoprono alla fine: la prima che vince 4 domande prende il round.",
+    chips: ["2–4 squadre", "Un telefono"],
+    modes: [{ label: "Banale o Geniale", mode: "banale" }],
+    sheet: {
+      bg: "#170F45",
+      ink: "#F4F1FF",
+      accent: "#FF6A3D",
+      accentInk: "#1A1247",
     },
   },
 ];

@@ -22,6 +22,7 @@ import { FrancottinaScreen } from "./game/FrancottinaScreen";
 import { RickScreen } from "./rick/RickScreen";
 import { DieciScreen } from "./game/DieciScreen";
 import { FreccetteScreen } from "./game/FreccetteScreen";
+import { BanaleScreen } from "./game/BanaleScreen";
 import { useGameState } from "@/hooks/useGameState";
 
 export function App() {
@@ -63,6 +64,10 @@ export function App() {
   // Freccette Challenge: dal numero di partenza a 0, un telefono che segna i lanci
   if (state.gameMode === "freccette") {
     return <FreccetteScreen dispatch={dispatch} />;
+  }
+  // Banale o Geniale: 2–4 squadre, un telefono che raccoglie le risposte
+  if (state.gameMode === "banale") {
+    return <BanaleScreen dispatch={dispatch} />;
   }
 
   // Personaggio Misterioso ha da 2 a 6 squadre: le nomina nella sua schermata iniziale

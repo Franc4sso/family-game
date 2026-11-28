@@ -45,7 +45,8 @@ export type GameMode =
   | "francottina"
   | "rick"
   | "dieci"
-  | "freccette";
+  | "freccette"
+  | "banale";
 
 export type RuboOutcome = "correct" | "wrong" | "steal_success" | "steal_fail";
 

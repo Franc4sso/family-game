@@ -204,6 +204,28 @@ export function GameCover({ id }: { id: GameId }) {
         </div>
       );
 
+    case "banale":
+      return (
+        <div className="relative flex h-full w-full items-stretch justify-between gap-3 overflow-hidden rounded-[18px] bg-[radial-gradient(130%_120%_at_70%_0%,#2E1E8C,#170F45_55%,#0C072B)] px-[18px] py-4 text-left">
+          {/* la folla: tutte uguali, una sola diversa */}
+          <div aria-hidden="true" className="absolute top-1/2 -right-3 grid -translate-y-1/2 grid-cols-6 gap-[7px] [transform:translateY(-50%)_perspective(400px)_rotateY(-18deg)]">
+            {Array.from({ length: 30 }, (_, i) => (
+              <span
+                key={i}
+                className={i === 15 ? "size-[13px] rounded-full bg-[#45E3FF] shadow-[0_0_10px_#45E3FF]" : "size-[13px] rounded-full bg-[radial-gradient(circle_at_35%_30%,#FFC7B5,#FF6A3D_55%,#B9401A)]"}
+              />
+            ))}
+          </div>
+          <div className="relative flex min-w-0 flex-col justify-between">
+            <span className="font-['Lilita_One'] text-[32px] leading-[0.9] md:text-[40px]">
+              <span className="text-[#FF6A3D]">Banale</span> <span className="text-[0.6em] text-[#F4F1FF]">o</span>
+              <br />
+              <span className="text-[#45E3FF]">Geniale</span>
+            </span>
+            <span className="text-xs font-extrabold text-[#BDB4EE]">2–4 squadre · un telefono</span>
+          </div>
+        </div>
+      );
     case "freccette":
       return (
         <div className="relative flex h-full w-full items-stretch justify-between gap-3 overflow-hidden rounded-[18px] bg-[#F4F1EA] px-[18px] py-4 text-left">

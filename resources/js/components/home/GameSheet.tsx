@@ -16,6 +16,7 @@ const TITLE_CLASS: Record<GameId, string> = {
   rick: "font-['Shrikhand'] text-[40px]",
   dieci: "font-['Bagel_Fat_One'] text-[34px]",
   freccette: "font-['Anton'] uppercase text-[40px]",
+  banale: "font-['Lilita_One'] text-[40px]",
 };
 
 interface GameSheetProps {
